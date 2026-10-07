@@ -18,10 +18,7 @@ export default async function Coupons() {
         </div>
       </div>
       {coupons === null ? (
-        <div className="info-message">
-          Coupons need the latest database update. Run{" "}
-          <code>supabase/migrations/006_rewards.sql</code> in the Supabase SQL editor.
-        </div>
+        <div className="info-message">Coupons are not available yet.</div>
       ) : (
         <CouponManager coupons={coupons} />
       )}

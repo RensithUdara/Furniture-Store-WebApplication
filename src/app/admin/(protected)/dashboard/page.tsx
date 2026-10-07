@@ -1,37 +1,24 @@
 import Link from "next/link";
-import { getBundles } from "@/services/catalog";
 import { AlertTriangle, Armchair, Banknote, ClipboardList, Clock, Plus } from "lucide-react";
 import { guardAdminPage, requirePermission } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { getProducts } from "@/services/catalog";
-import { getOrders, orderEventsReady } from "@/services/orders";
+import { getOrders } from "@/services/orders";
 import { getSettings } from "@/services/settings";
 import { money, label, stockLabel, stockTone } from "@/lib/format";
 import { OrderTable } from "@/components/order-table";
+import { ColumnChart, RankBars } from "@/components/admin/charts";
+import { addDays, salesReport, today as reportToday } from "@/lib/reports";
 export const metadata = { title: "Store overview" };
 const statuses = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
 export default async function Dashboard() {
   if (!(await guardAdminPage("dashboard"))) return null;
   const user = await requirePermission("dashboard");
-  const admin = user.profile?.role === "ADMIN";
   const [products, orders, settings] = await Promise.all([
     getProducts(true),
     getOrders(true),
     getSettings(),
   ]);
-  // Migrations that have not been applied yet, detected from the columns each one adds.
-  const pendingMigrations = [
-    !settings && "003_settings.sql",
-    settings?.pickup_open_hour == null && "004_storefront.sql",
-    user.profile?.address_line1 === undefined && "005_account.sql",
-    settings?.points_per_100 == null && "006_rewards.sql",
-    user.profile?.staff_role_id === undefined && "007_staff.sql",
-    orders.length > 0 && orders[0].tracking_number === undefined && "008_tracking.sql",
-    !(await orderEventsReady()) && "009_order_events.sql",
-    settings != null && settings.unpaid_expiry_minutes == null && "010_safety.sql",
-    settings != null && settings.return_window_days == null && "011_shopping.sql",
-    (await getBundles(true)) === null && "012_catalogue.sql",
-  ].filter((f) => typeof f === "string");
   const firstName = String(user.profile?.name || "").split(" ")[0];
   const today = new Date().toLocaleDateString("en-GB", {
     timeZone: "Asia/Colombo",
@@ -47,8 +34,11 @@ export default async function Dashboard() {
   const low = products
     .filter((p) => p.is_active)
     .flatMap((p) => p.product_variants.filter((v) => v.is_active).map((v) => ({ p, v })))
-    .filter(({ v }) => v.stock_quantity <= 10)
+    // Each finish has its own reorder level once migration 013 has been run; ten until then.
+    .filter(({ v }) => v.stock_quantity <= (v.reorder_level ?? 10))
     .sort((a, b) => a.v.stock_quantity - b.v.stock_quantity);
+  // The last 30 days, for the two charts.
+  const month = salesReport(orders, products, addDays(reportToday(), -29), reportToday(), "day");
   const pending = orders.filter((o) => o.order_status === "PENDING").length;
   const live = orders.filter((o) => o.order_status !== "CANCELLED");
   const revenue = live
@@ -77,7 +67,12 @@ export default async function Dashboard() {
       note: `${products.filter((p) => p.is_active).length} visible in store`,
       icon: Armchair,
     },
-    { name: "Low stock", value: low.length, note: "Variants at 10 or fewer", icon: AlertTriangle },
+    {
+      name: "Low stock",
+      value: low.length,
+      note: "Finishes at their reorder level",
+      icon: AlertTriangle,
+    },
   ];
   return (
     <>
@@ -100,18 +95,6 @@ export default async function Dashboard() {
           )}
         </div>
       </div>
-      {admin && pendingMigrations.length > 0 && (
-        <div className="info-message">
-          <strong>Database update needed.</strong> Some features stay switched off until you run{" "}
-          {pendingMigrations.map((file, i) => (
-            <span key={file}>
-              {i > 0 && ", then "}
-              <code>supabase/migrations/{file}</code>
-            </span>
-          ))}{" "}
-          in the Supabase SQL editor.
-        </div>
-      )}
       {orders.some((o) => o.requires_review) && (
         <div className="error-message">
           Some orders require payment review. Check the orders list before fulfillment.
@@ -128,6 +111,31 @@ export default async function Dashboard() {
             <small>{note}</small>
           </div>
         ))}
+      </div>
+      <div className="dashboard-grid charts-row">
+        <section className="panel">
+          <div className="admin-section-title">
+            <h2>Sales trend, last 30 days</h2>
+            <Link className="text-link" href="/admin/reports">
+              Full report
+            </Link>
+          </div>
+          <ColumnChart
+            data={month.rows.map((r) => ({ label: r.label, value: r.sales }))}
+            label="Sales"
+          />
+          <p className="muted small-print">
+            {money(month.totals.sales)} from {month.totals.orders} orders, not counting cancelled.
+          </p>
+        </section>
+        <section className="panel">
+          <div className="admin-section-title">
+            <h2>Top categories, last 30 days</h2>
+          </div>
+          <RankBars
+            data={month.categories.slice(0, 6).map((c) => ({ name: c.name, value: c.revenue }))}
+          />
+        </section>
       </div>
       <div className="dashboard-grid">
         <section className="panel">
@@ -199,7 +207,7 @@ export default async function Dashboard() {
               ))}
             </ul>
           ) : (
-            <p className="muted">Every active variant has more than ten units available.</p>
+            <p className="muted">Every active finish is above its reorder level.</p>
           )}
         </section>
       </div>
