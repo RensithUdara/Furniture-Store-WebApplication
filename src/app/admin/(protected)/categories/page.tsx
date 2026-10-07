@@ -3,7 +3,7 @@ import { getCategories } from "@/services/catalog";
 import { CategoryForm } from "@/components/admin/category-form";
 export const metadata = { title: "Manage categories" };
 export default async function Categories() {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("categories"))) return null;
   const categories = await getCategories(true);
   // Two levels only: a category that already has sub-categories cannot itself become one.
   // parent_id exists once migration 004 has run; before that every category is top-level.

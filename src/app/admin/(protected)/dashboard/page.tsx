@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, Armchair, Banknote, ClipboardList, Clock, Plus } from "lucide-react";
-import { guardAdminPage, requireAdmin } from "@/lib/auth";
+import { guardAdminPage, requirePermission } from "@/lib/auth";
 import { getProducts } from "@/services/catalog";
 import { getOrders } from "@/services/orders";
 import { getSettings } from "@/services/settings";
@@ -9,8 +9,9 @@ import { OrderTable } from "@/components/order-table";
 export const metadata = { title: "Store overview" };
 const statuses = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
 export default async function Dashboard() {
-  if (!(await guardAdminPage())) return null;
-  const user = await requireAdmin();
+  if (!(await guardAdminPage("dashboard"))) return null;
+  const user = await requirePermission("dashboard");
+  const admin = user.profile?.role === "ADMIN";
   const [products, orders, settings] = await Promise.all([
     getProducts(true),
     getOrders(true),
@@ -22,6 +23,7 @@ export default async function Dashboard() {
     settings?.pickup_open_hour == null && "004_storefront.sql",
     user.profile?.address_line1 === undefined && "005_account.sql",
     settings?.points_per_100 == null && "006_rewards.sql",
+    user.profile?.staff_role_id === undefined && "007_staff.sql",
   ].filter((f) => typeof f === "string");
   const low = products
     .filter((p) => p.is_active)
@@ -70,7 +72,7 @@ export default async function Dashboard() {
           <Plus size={16} /> Add product
         </Link>
       </div>
-      {pendingMigrations.length > 0 && (
+      {admin && pendingMigrations.length > 0 && (
         <div className="info-message">
           <strong>Database update needed.</strong> Some features stay switched off until you run{" "}
           {pendingMigrations.map((file, i) => (

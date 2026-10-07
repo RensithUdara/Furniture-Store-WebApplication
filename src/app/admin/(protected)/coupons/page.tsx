@@ -3,7 +3,7 @@ import { getCoupons } from "@/services/rewards";
 import { CouponForm } from "@/components/admin/coupon-form";
 export const metadata = { title: "Coupons" };
 export default async function Coupons() {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("coupons"))) return null;
   const coupons = await getCoupons();
   return (
     <>
