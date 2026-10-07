@@ -836,6 +836,7 @@ code {
   color: var(--gold);
 }
 .footer-grid {
+  display: grid;
   grid-template-columns: 1.5fr repeat(3, 1fr);
   gap: 40px;
   padding-block: 44px 36px;
@@ -851,6 +852,10 @@ code {
 }
 .footer h3 {
   margin: 4px 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: #fff;
 }
 .footer-grid nav a {
