@@ -1,9 +1,10 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { isConfigured } from "@/lib/config";
 import { ResetRequestForm } from "@/components/account-forms";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Reset your password" };
+export const metadata = { title: "Reset your password", robots: PRIVATE };
 export default function ForgotPassword() {
   return (
     <div className="container page-space narrow">

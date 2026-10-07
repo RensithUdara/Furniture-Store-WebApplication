@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { currentUser } from "@/lib/auth";
@@ -6,7 +7,7 @@ import { OrderDetail } from "@/components/order-detail";
 import { getReturn } from "@/services/shopping";
 import { getSettings } from "@/services/settings";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Order details" };
+export const metadata = { title: "Order details", robots: PRIVATE };
 export default async function OrderPage({
   params,
   searchParams,

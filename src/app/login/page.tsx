@@ -1,7 +1,8 @@
+import { PRIVATE } from "@/lib/seo";
 import { AuthForm } from "@/components/auth-form";
 import { isConfigured } from "@/lib/config";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Welcome back" };
+export const metadata = { title: "Sign in", robots: PRIVATE };
 export default async function Login({
   searchParams,
 }: {
