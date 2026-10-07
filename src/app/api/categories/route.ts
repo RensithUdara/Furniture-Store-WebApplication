@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { getCategories } from "@/services/catalog";
 import { supabase } from "@/lib/supabase/server";
 import { categorySchema } from "@/lib/validation";
@@ -14,7 +14,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     checkOrigin(request);
-    await requireAdmin();
+    await requirePermission("categories");
     const input = categorySchema.parse(await readJson(request));
     const db = await supabase();
     if (input.parent_id) {

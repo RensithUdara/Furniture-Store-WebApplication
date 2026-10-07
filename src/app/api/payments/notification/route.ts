@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { paymentClient } from "@/lib/supabase/server";
+import { serviceClient } from "@/lib/supabase/server";
 import { verifyNotification, type Notification } from "@/lib/payments/payhere";
 import { apiError, HttpError, dbError } from "@/lib/http";
 import { z } from "zod";
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!verifyNotification(n, merchant, secret))
       throw new HttpError(400, "Invalid payment notification.");
     z.uuid().parse(n.order_id);
-    const db = paymentClient();
+    const db = serviceClient();
     const { error } = await db.rpc("record_payment", {
       p_order: n.order_id,
       p_payment: n.payment_id,

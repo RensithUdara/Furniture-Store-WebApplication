@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { apiError, checkOrigin, dbError, readJson, HttpError } from "@/lib/http";
 export async function PATCH(request: Request) {
   try {
     checkOrigin(request);
-    await requireAdmin();
+    await requirePermission("inventory");
     const { id, stock_quantity, previous } = z
       .object({
         id: z.uuid(),
