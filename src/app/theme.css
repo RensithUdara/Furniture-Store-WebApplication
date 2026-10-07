@@ -4249,3 +4249,40 @@ td small.wrap {
     width: 100%;
   }
 }
+
+/* ---------- Admin sidebar: a slim scrollbar that matches the dark panel ---------- */
+.admin-sidebar nav {
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  scrollbar-gutter: stable;
+}
+.admin-sidebar nav:hover,
+.admin-sidebar nav:focus-within {
+  scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+}
+.admin-sidebar nav::-webkit-scrollbar {
+  width: 6px;
+}
+.admin-sidebar nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-sidebar nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: transparent;
+}
+.admin-sidebar nav:hover::-webkit-scrollbar-thumb,
+.admin-sidebar nav:focus-within::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.22);
+}
+.admin-sidebar nav::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.38);
+}
+.admin-sidebar nav::-webkit-scrollbar-button {
+  display: none;
+}
+/* A little tighter, so the whole menu fits on most screens without scrolling. */
+.admin-group > span {
+  padding-top: 12px;
+  padding-bottom: 6px;
+}
