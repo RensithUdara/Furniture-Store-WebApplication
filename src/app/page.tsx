@@ -2,7 +2,7 @@ import Link from "next/link";
 import { after } from "next/server";
 import { sendCartReminders } from "@/services/marketing";
 import { FlashBanner } from "@/components/marketing";
-import { absolute, jsonLd, SITE_NAME, siteUrl } from "@/lib/seo";
+import { absolute, jsonLd, pageMeta, SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/seo";
 import {
   ArrowRight,
   Banknote,
@@ -46,6 +46,7 @@ const reasons = (settings: StoreSettings | null) => [
     text: "Prefer to talk it through? Send your full cart to our team in one tap.",
   },
 ];
+export const metadata = pageMeta({ description: SITE_DESCRIPTION, path: "/" });
 export default async function Home() {
   const [categories, products, settings, slides] = await Promise.all([
     getCategories(),
@@ -69,25 +70,53 @@ export default async function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLd({
-            "@context": "https://schema.org",
-            "@type": "FurnitureStore",
-            name: SITE_NAME,
-            url: siteUrl(),
-            image: absolute("/images/hero.jpg"),
-            ...(settings?.store_phone
-              ? { telephone: settings.store_phone.split(/[,/]/)[0].trim() }
-              : {}),
-            ...(settings?.pickup_address
-              ? {
-                  address: {
-                    "@type": "PostalAddress",
-                    streetAddress: settings.pickup_address,
-                    addressCountry: "LK",
-                  },
-                }
-              : {}),
-          }),
+          __html: jsonLd([
+            {
+              "@context": "https://schema.org",
+              "@type": "FurnitureStore",
+              "@id": `${siteUrl()}/#store`,
+              name: SITE_NAME,
+              description: SITE_DESCRIPTION,
+              url: siteUrl(),
+              logo: absolute("/images/forma-logo.png"),
+              image: absolute("/images/og-image.jpg"),
+              priceRange: "Rs.",
+              currenciesAccepted: "LKR",
+              paymentAccepted: "Credit card, debit card, cash",
+              areaServed: { "@type": "Country", name: "Sri Lanka" },
+              ...(settings?.store_phone
+                ? { telephone: settings.store_phone.split(/[,/]/)[0].trim() }
+                : {}),
+              ...(settings?.pickup_address
+                ? {
+                    address: {
+                      "@type": "PostalAddress",
+                      streetAddress: settings.pickup_address,
+                      addressCountry: "LK",
+                    },
+                  }
+                : {}),
+              ...(settings?.pickup_open_hour != null && settings.pickup_close_hour != null
+                ? {
+                    openingHours: `Mo-Su ${String(settings.pickup_open_hour).padStart(2, "0")}:00-${String(settings.pickup_close_hour % 24).padStart(2, "0")}:00`,
+                  }
+                : {}),
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: SITE_NAME,
+              url: siteUrl(),
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: `${siteUrl()}/products?q={search_term_string}`,
+                },
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ]),
         }}
       />
       {slides.length ? (

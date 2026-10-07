@@ -6,7 +6,7 @@ import { absolute } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: MetadataRoute.Sitemap = [
-    { url: absolute("/"), changeFrequency: "daily", priority: 1 },
+    { url: absolute("/"), changeFrequency: "daily", priority: 1, lastModified: new Date() },
     { url: absolute("/products"), changeFrequency: "daily", priority: 0.9 },
     { url: absolute("/bundles"), changeFrequency: "weekly", priority: 0.6 },
     ...["/faq", "/help", "/warranty", "/refund-policy", "/terms", "/track"].map((path) => ({
