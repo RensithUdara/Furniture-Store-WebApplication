@@ -181,6 +181,12 @@ export async function invoicePdf(order: Order, brand: InvoiceBrand) {
     ...(pickup && order.pickup_at
       ? ([["Pickup time", dateTime(order.pickup_at)]] as [string, string][])
       : []),
+    ...(order.tracking_number
+      ? ([["Tracking", `${order.courier ? `${order.courier} ` : ""}${order.tracking_number}`]] as [
+          string,
+          string,
+        ][])
+      : []),
     ["Order status", label(order.order_status).replace(/^./, (c) => c.toUpperCase())],
   ];
   facts.forEach(([name, value], i) => {

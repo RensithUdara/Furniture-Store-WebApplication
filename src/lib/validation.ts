@@ -134,6 +134,14 @@ export const addressSchema = z
 export const productStatusSchema = z.object({ is_active: z.boolean() });
 export const statusSchema = z.object({
   status: z.enum(["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]),
+  // Sent by the admin when shipping a delivery, or when correcting the details afterwards.
+  tracking_number: z
+    .string()
+    .trim()
+    .max(60)
+    .regex(/^[A-Za-z0-9 ./#_-]*$/, "Use letters, numbers, spaces and . / # _ - only")
+    .optional(),
+  courier: z.string().trim().max(60).optional(),
 });
 export const settingsSchema = z
   .object({

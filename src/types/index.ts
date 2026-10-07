@@ -77,6 +77,9 @@ export type Order = {
   payment_method: PaymentMethod;
   fulfillment_method?: "DELIVERY" | "PICKUP";
   pickup_at?: string | null;
+  // Present once migration 008 has been run.
+  tracking_number?: string;
+  courier?: string;
   // Present once migration 006 has been run.
   coupon_code?: string | null;
   discount_amount?: number;

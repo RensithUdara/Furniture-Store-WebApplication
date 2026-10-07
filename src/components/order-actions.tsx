@@ -1,14 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Truck } from "lucide-react";
 import { api, startPayment } from "@/lib/client-api";
-import { useConfirm } from "@/components/dialogs";
+import { Modal, useConfirm } from "@/components/dialogs";
 import type { Order } from "@/types";
 export function OrderActions({ order: o, admin = false }: { order: Order; admin?: boolean }) {
   const confirm = useConfirm();
   const router = useRouter(),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    // The shipping popup: "ship" moves the order to shipped, "edit" only corrects the details.
+    [shipping, setShipping] = useState<"ship" | "edit" | null>(null);
   useEffect(() => {
     if (
       o.payment_method !== "PAYHERE" ||
@@ -29,14 +32,16 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
     try {
       await action();
       router.refresh();
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "The action could not be completed.");
+      return false;
     } finally {
       setBusy(false);
     }
   }
-  async function status(value: string) {
-    await api(`/api/orders/${o.id}/status`, "PATCH", { status: value });
+  async function status(value: string, tracking?: { tracking_number: string; courier: string }) {
+    await api(`/api/orders/${o.id}/status`, "PATCH", { status: value, ...tracking });
   }
   const next: Record<string, string> = {
     PENDING: "CONFIRMED",
@@ -50,6 +55,32 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
     SHIPPED: "ready for pickup",
     DELIVERED: "collected",
   };
+  const upcoming = next[o.order_status];
+  const stage = (pickup && pickupLabels[upcoming]) || upcoming?.toLowerCase();
+  async function advance() {
+    // Shipping a delivery asks for the courier and tracking number instead of a plain yes/no.
+    if (upcoming === "SHIPPED" && !pickup) return setShipping("ship");
+    if (
+      await confirm({
+        title: `Mark this order as ${stage}?`,
+        message:
+          "The customer will see the new status. An order cannot be moved back to an earlier stage.",
+        confirmLabel: `Mark ${stage}`,
+      })
+    )
+      run(() => status(upcoming));
+  }
+  async function saveShipping(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const ok = await run(() =>
+      status("SHIPPED", {
+        tracking_number: String(form.get("tracking_number") || "").trim(),
+        courier: String(form.get("courier") || "").trim(),
+      }),
+    );
+    if (ok) setShipping(null);
+  }
   return (
     <>
       {o.requires_review && (
@@ -89,29 +120,19 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
           !closed &&
           !o.requires_review &&
           (o.payment_method !== "PAYHERE" || o.payment_status === "PAID") && (
-            <button
-              className="button"
-              disabled={busy}
-              onClick={async () => {
-                const stage =
-                  (pickup && pickupLabels[next[o.order_status]]) ||
-                  next[o.order_status].toLowerCase();
-                if (
-                  await confirm({
-                    title: `Mark this order as ${stage}?`,
-                    message:
-                      "The customer will see the new status. An order cannot be moved back to an earlier stage.",
-                    confirmLabel: `Mark ${stage}`,
-                  })
-                )
-                  run(() => status(next[o.order_status]));
-              }}
-            >
-              Mark{" "}
-              {(pickup && pickupLabels[next[o.order_status]]) ||
-                next[o.order_status]?.toLowerCase()}
+            <button className="button" disabled={busy} onClick={advance}>
+              Mark {stage}
             </button>
           )}
+        {admin && !pickup && o.order_status === "SHIPPED" && (
+          <button
+            className="button button-outline"
+            disabled={busy}
+            onClick={() => setShipping("edit")}
+          >
+            <Truck size={16} /> {o.tracking_number ? "Edit tracking" : "Add tracking"}
+          </button>
+        )}
         {!closed &&
           o.order_status !== "SHIPPED" &&
           (admin || (o.order_status === "PENDING" && o.payment_status !== "PAID")) && (
@@ -139,11 +160,73 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
           Refresh status
         </button>
       </div>
-      {error && (
+      {error && !shipping && (
         <p className="error-message" role="alert">
           {error}
         </p>
       )}
+      <Modal
+        open={shipping !== null}
+        onClose={() => setShipping(null)}
+        size="sm"
+        title={shipping === "edit" ? "Tracking details" : "Mark as shipped"}
+        description={
+          shipping === "edit"
+            ? "Correct the courier or tracking number the customer sees."
+            : "Add the delivery details. The customer sees them on their order page."
+        }
+      >
+        <form className="stack" onSubmit={saveShipping}>
+          <label className="field">
+            Courier or delivery service
+            <input
+              name="courier"
+              defaultValue={o.courier || ""}
+              maxLength={60}
+              placeholder="e.g. Prompt Xpress, or Own delivery van"
+            />
+          </label>
+          <label className="field">
+            Tracking number
+            <input
+              name="tracking_number"
+              defaultValue={o.tracking_number || ""}
+              maxLength={60}
+              pattern="[A-Za-z0-9 ./#_\-]*"
+              placeholder="e.g. PX-20481563"
+              autoFocus
+            />
+            <small>
+              Letters, numbers, spaces and . / # _ - only. Leave both blank if there is nothing to
+              track.
+            </small>
+          </label>
+          {shipping === "ship" && (
+            <p className="info-message">
+              This moves the order to <strong>Shipped</strong>. It cannot be moved back, and a
+              shipped order can no longer be cancelled.
+            </p>
+          )}
+          {error && (
+            <p className="error-message" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="order-actions">
+            <button className="button" disabled={busy}>
+              {busy ? "Saving…" : shipping === "edit" ? "Save tracking" : "Mark shipped"}
+            </button>
+            <button
+              type="button"
+              className="button button-outline"
+              disabled={busy}
+              onClick={() => setShipping(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }

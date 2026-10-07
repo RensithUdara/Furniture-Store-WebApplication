@@ -25,6 +25,7 @@ export default async function Dashboard() {
     user.profile?.address_line1 === undefined && "005_account.sql",
     settings?.points_per_100 == null && "006_rewards.sql",
     user.profile?.staff_role_id === undefined && "007_staff.sql",
+    orders.length > 0 && orders[0].tracking_number === undefined && "008_tracking.sql",
   ].filter((f) => typeof f === "string");
   const firstName = String(user.profile?.name || "").split(" ")[0];
   const today = new Date().toLocaleDateString("en-GB", {

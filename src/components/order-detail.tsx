@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Check, Download, Mail, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Check, Download, Truck, Mail, MessageCircle, Phone } from "lucide-react";
 import { money, dateTime, label, deliveryLabel } from "@/lib/format";
 import { whatsappMessage } from "@/lib/whatsapp";
 import { payhere } from "@/lib/config";
@@ -95,6 +95,40 @@ export function OrderDetail({
             </li>
           ))}
         </ol>
+      )}
+      {!pickup && ["SHIPPED", "DELIVERED"].includes(o.order_status) && (
+        <div className="tracking-card">
+          <span className="tracking-icon">
+            <Truck size={22} />
+          </span>
+          <div>
+            <strong>
+              {o.order_status === "DELIVERED" ? "Delivered" : "Your order is on its way"}
+            </strong>
+            {o.courier || o.tracking_number ? (
+              <dl>
+                {o.courier && (
+                  <div>
+                    <dt>Courier</dt>
+                    <dd>{o.courier}</dd>
+                  </div>
+                )}
+                {o.tracking_number && (
+                  <div>
+                    <dt>Tracking number</dt>
+                    <dd className="tracking-number">{o.tracking_number}</dd>
+                  </div>
+                )}
+              </dl>
+            ) : (
+              <p>
+                {admin
+                  ? "No tracking details have been added for this delivery."
+                  : "Our delivery team will contact you on the phone number below."}
+              </p>
+            )}
+          </div>
+        </div>
       )}
       <div className="order-details">
         <div>

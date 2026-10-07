@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Download, PackageSearch, RotateCcw, Search, Store } from "lucide-react";
+import { ArrowRight, Download, Truck, PackageSearch, RotateCcw, Search, Store } from "lucide-react";
 import { Badge, Method } from "@/components/order-table";
 import { useCart } from "@/components/cart-provider";
 import { navigate } from "@/components/navigation-progress";
@@ -95,6 +95,12 @@ export function OrderCard({ order: o }: { order: Order }) {
           </span>
         )}
       </p>
+      {o.tracking_number && !cancelled && (
+        <p className="order-card-tracking">
+          <Truck size={14} /> {o.courier ? `${o.courier} · ` : ""}Tracking{" "}
+          <strong>{o.tracking_number}</strong>
+        </p>
+      )}
       {!cancelled && (
         <div
           className="order-progress"
