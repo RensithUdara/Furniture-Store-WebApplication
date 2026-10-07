@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
 import { accountUser } from "@/lib/account";
@@ -5,7 +6,7 @@ import { getProducts } from "@/services/catalog";
 import { getWishlistIds } from "@/services/rewards";
 import { ProductCard } from "@/components/product-card";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "My wishlist" };
+export const metadata = { title: "My wishlist", robots: PRIVATE };
 export default async function AccountWishlist() {
   await accountUser("/account/wishlist");
   const [ids, products] = await Promise.all([getWishlistIds(), getProducts()]);

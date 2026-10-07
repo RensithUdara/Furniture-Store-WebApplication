@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -18,7 +19,7 @@ import { StockAlertList } from "@/components/account-extras";
 import { OrderCard } from "@/components/order-history";
 import { money } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Your account" };
+export const metadata = { title: "Your account", robots: PRIVATE };
 export default async function Account() {
   const user = await accountUser("/account");
   const [orders, addresses, alerts] = await Promise.all([
