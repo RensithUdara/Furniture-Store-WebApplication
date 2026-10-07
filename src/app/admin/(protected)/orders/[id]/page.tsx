@@ -5,6 +5,8 @@ import { getOrder, getOrderEvents, getPaymentEvents } from "@/services/orders";
 import { OrderDetail } from "@/components/order-detail";
 import { getReturn } from "@/services/shopping";
 import { getSettings } from "@/services/settings";
+import { getRefunds } from "@/services/admin";
+import { payhereRefundReady } from "@/lib/payments/refund";
 export const metadata = { title: "Manage order" };
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   if (!(await guardAdminPage("orders"))) return null;
@@ -20,6 +22,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       events={await getOrderEvents(id)}
       returnRequest={await getReturn(id)}
       settings={await getSettings()}
+      refunds={await getRefunds(id)}
+      payhereRefunds={payhereRefundReady()}
     />
   );
 }

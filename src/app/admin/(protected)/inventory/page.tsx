@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { History } from "lucide-react";
 import { guardAdminPage } from "@/lib/auth";
 import { getProducts } from "@/services/catalog";
 import { getStockAlerts } from "@/services/shopping";
@@ -16,6 +18,9 @@ export default async function Inventory() {
           <h1>Inventory</h1>
           <p>Stock is available-to-sell inventory, excluding units already reserved by orders.</p>
         </div>
+        <Link className="button button-outline" href="/admin/inventory/history">
+          <History size={16} /> Stock history
+        </Link>
       </div>
       <InventoryTable products={products} />
       {alerts.length > 0 && (
