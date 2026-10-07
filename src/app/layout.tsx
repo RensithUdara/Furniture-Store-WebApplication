@@ -14,6 +14,7 @@ import { getCategories } from "@/services/catalog";
 import { getSettings } from "@/services/settings";
 import { getWishlistIds } from "@/services/rewards";
 import { WishlistProvider } from "@/components/wishlist-provider";
+import { CompareProvider } from "@/components/shop-extras";
 import "./reset.css";
 import "./globals.css";
 import "./theme.css";
@@ -69,20 +70,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <StoreProvider value={{ whatsapp: whatsappNumber(), settings }}>
             <CartProvider>
               <WishlistProvider initial={wishlist} signedIn={Boolean(user)}>
-                <Header
-                  categories={categories}
-                  // Only personalises navigation. Every protected page and API re-checks on the server.
-                  user={
-                    user
-                      ? {
-                          name: user.profile?.name || user.email || "",
-                          admin: isStaff(user.profile),
-                        }
-                      : null
-                  }
-                />
-                <main id="main">{children}</main>
-                <Footer categories={categories} />
+                <CompareProvider>
+                  <Header
+                    categories={categories}
+                    // Only personalises navigation. Every protected page and API re-checks on the server.
+                    user={
+                      user
+                        ? {
+                            name: user.profile?.name || user.email || "",
+                            admin: isStaff(user.profile),
+                          }
+                        : null
+                    }
+                  />
+                  <main id="main">{children}</main>
+                  <Footer categories={categories} />
+                </CompareProvider>
               </WishlistProvider>
             </CartProvider>
           </StoreProvider>
