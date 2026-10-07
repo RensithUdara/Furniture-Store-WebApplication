@@ -13,6 +13,7 @@ import {
 import { useCart } from "@/components/cart-provider";
 import { WishButton } from "@/components/wishlist-provider";
 import { NotifyMe, Stars } from "@/components/shop-extras";
+import { ProductGallery } from "@/components/product-gallery";
 import { money, stockLabel, stockTone } from "@/lib/format";
 import type { Product, StoreSettings } from "@/types";
 export function ProductDetail({
@@ -27,7 +28,6 @@ export function ProductDetail({
   const variants = p.product_variants.filter((v) => v.is_active);
   const [variantId, setVariantId] = useState(variants[0]?.id),
     [quantity, setQuantity] = useState(1),
-    [photo, setPhoto] = useState(0),
     [added, setAdded] = useState(false);
   const { add, items } = useCart();
   const v = variants.find((v) => v.id === variantId);
@@ -54,29 +54,7 @@ export function ProductDetail({
   }
   return (
     <div className="product-detail">
-      <div className="gallery">
-        <div className="main-photo">
-          <img
-            src={p.product_images[photo]?.image_url || "/images/living.jpg"}
-            alt={`${p.name}, image ${photo + 1}`}
-          />
-        </div>
-        {p.product_images.length > 1 && (
-          <div className="thumbnails">
-            {p.product_images.map((img, i) => (
-              <button
-                key={img.id}
-                className={photo === i ? "selected" : ""}
-                onClick={() => setPhoto(i)}
-                aria-label={`View image ${i + 1}`}
-                aria-pressed={photo === i}
-              >
-                <img src={img.image_url} alt="" />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <ProductGallery name={p.name} images={p.product_images} video={p.video_url} />
       <div className="detail-copy">
         <span className="eyebrow">
           {p.categories.name} / {p.brand}
@@ -212,6 +190,18 @@ export function ProductDetail({
               <dt>Dimensions</dt>
               <dd>{p.dimensions}</dd>
             </div>
+            {p.size && (
+              <div>
+                <dt>Size</dt>
+                <dd>{p.size}</dd>
+              </div>
+            )}
+            {p.rooms && p.rooms.length > 0 && (
+              <div>
+                <dt>Suits</dt>
+                <dd>{p.rooms.join(", ")}</dd>
+              </div>
+            )}
             <div>
               <dt>SKU</dt>
               <dd>{v?.sku || "Unavailable"}</dd>

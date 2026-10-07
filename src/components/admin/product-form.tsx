@@ -6,6 +6,7 @@ import { Plus, X } from "lucide-react";
 import { api } from "@/lib/client-api";
 import { navigate } from "@/components/navigation-progress";
 import { productSchema } from "@/lib/validation";
+import { ROOMS, SIZES } from "@/lib/catalog-filter";
 import { ImageUpload } from "@/components/admin/upload";
 import type { Product, Category } from "@/types";
 type EditableVariant = {
@@ -35,9 +36,12 @@ function newVariant(): EditableVariant {
 export function ProductForm({
   product: p,
   categories,
+  extras = false,
 }: {
   product?: Product;
   categories: Category[];
+  // Rooms, size and video are saved once migration 012 has been run.
+  extras?: boolean;
 }) {
   const router = useRouter();
   const [variants, setVariants] = useState<EditableVariant[]>(
@@ -48,6 +52,7 @@ export function ProductForm({
     })) || [],
   );
   const [images, setImages] = useState(p?.product_images.map((i) => i.image_url) || []);
+  const [rooms, setRooms] = useState<string[]>(p?.rooms || []);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const existing = new Set(p?.product_variants.map((v) => v.id) || []);
@@ -75,6 +80,7 @@ export function ProductForm({
         is_featured: form.has("is_featured"),
         images,
         variants,
+        ...(extras ? { rooms } : {}),
       });
       await api("/api/products", "POST", data);
       navigate(router.push, "/admin/products");
@@ -147,6 +153,48 @@ export function ProductForm({
               maxLength={200}
             />
           </label>
+          {extras && (
+            <>
+              <label className="field">
+                Size
+                <select name="size" defaultValue={p?.size || ""}>
+                  <option value="">Not set</option>
+                  {SIZES.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+                <small>Lets shoppers filter the collection by size.</small>
+              </label>
+              <label className="field">
+                Video link (optional)
+                <input
+                  name="video_url"
+                  type="url"
+                  defaultValue={p?.video_url}
+                  placeholder="https://www.youtube.com/watch?v=…"
+                  maxLength={500}
+                />
+                <small>A YouTube link, or a direct https link to an .mp4 or .webm file.</small>
+              </label>
+              <fieldset className="field full room-picker">
+                <legend>Rooms this piece suits</legend>
+                <div>
+                  {ROOMS.map((r) => (
+                    <label className="check-label" key={r}>
+                      <input
+                        type="checkbox"
+                        checked={rooms.includes(r)}
+                        onChange={() =>
+                          setRooms(rooms.includes(r) ? rooms.filter((v) => v !== r) : [...rooms, r])
+                        }
+                      />
+                      {r}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </>
+          )}
           <label className="check-label">
             <input type="checkbox" name="is_active" defaultChecked={p?.is_active ?? true} />
             Visible in store
