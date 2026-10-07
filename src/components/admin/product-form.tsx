@@ -15,6 +15,7 @@ type EditableVariant = {
   color_hex: string;
   material: string;
   price: number;
+  compare_at_price: number | null;
   stock_quantity: number;
   is_active: boolean;
 };
@@ -26,6 +27,7 @@ function newVariant(): EditableVariant {
     color_hex: "#b9aa94",
     material: "",
     price: 0,
+    compare_at_price: null,
     stock_quantity: 0,
     is_active: true,
   };
@@ -39,7 +41,11 @@ export function ProductForm({
 }) {
   const router = useRouter();
   const [variants, setVariants] = useState<EditableVariant[]>(
-    p?.product_variants.map((v) => ({ ...v, price: Number(v.price) })) || [],
+    p?.product_variants.map((v) => ({
+      ...v,
+      price: Number(v.price),
+      compare_at_price: v.compare_at_price ? Number(v.compare_at_price) : null,
+    })) || [],
   );
   const [images, setImages] = useState(p?.product_images.map((i) => i.image_url) || []);
   const [busy, setBusy] = useState(false),
@@ -48,7 +54,7 @@ export function ProductForm({
   function changeVariant(
     id: string,
     field: keyof EditableVariant,
-    value: string | number | boolean,
+    value: string | number | boolean | null,
   ) {
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
   }
@@ -260,6 +266,24 @@ export function ProductForm({
                   onChange={(e) => changeVariant(v.id, "price", Number(e.target.value))}
                   required
                 />
+              </label>
+              <label className="field">
+                Was price (Rs., optional)
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  max="100000000"
+                  value={v.compare_at_price || ""}
+                  onChange={(e) =>
+                    changeVariant(
+                      v.id,
+                      "compare_at_price",
+                      e.target.value ? Number(e.target.value) : null,
+                    )
+                  }
+                />
+                <small>Higher than the price, to show this finish as on sale.</small>
               </label>
               <label className="field">
                 {existing.has(v.id) ? "Available stock (read only)" : "Initial stock"}

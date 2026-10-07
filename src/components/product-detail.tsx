@@ -12,14 +12,17 @@ import {
 } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { WishButton } from "@/components/wishlist-provider";
+import { NotifyMe, Stars } from "@/components/shop-extras";
 import { money, stockLabel, stockTone } from "@/lib/format";
 import type { Product, StoreSettings } from "@/types";
 export function ProductDetail({
   product: p,
   settings,
+  signedIn = false,
 }: {
   product: Product;
   settings: StoreSettings | null;
+  signedIn?: boolean;
 }) {
   const variants = p.product_variants.filter((v) => v.is_active);
   const [variantId, setVariantId] = useState(variants[0]?.id),
@@ -30,6 +33,10 @@ export function ProductDetail({
   const v = variants.find((v) => v.id === variantId);
   const already = items.find((i) => i.variant_id === v?.id)?.quantity || 0;
   const available = v ? Math.max(0, Math.min(20, v.stock_quantity) - already) : 0;
+  const was =
+    v?.compare_at_price && Number(v.compare_at_price) > Number(v.price)
+      ? Number(v.compare_at_price)
+      : 0;
   function addItem() {
     if (!v || !available) return;
     add({
@@ -75,7 +82,23 @@ export function ProductDetail({
           {p.categories.name} / {p.brand}
         </span>
         <h1>{p.name}</h1>
-        <p className="detail-price">{money(v?.price || p.price)}</p>
+        {p.rating && (
+          <a className="detail-rating" href="#reviews">
+            <Stars value={p.rating.avg} size={17} /> {p.rating.avg.toFixed(1)} · {p.rating.count}{" "}
+            {p.rating.count === 1 ? "review" : "reviews"}
+          </a>
+        )}
+        <p className="detail-price">
+          {money(v?.price || p.price)}
+          {was > 0 && (
+            <>
+              <s>{money(was)}</s>
+              <span className="sale-badge">
+                Save {Math.round((1 - Number(v!.price) / was) * 100)}%
+              </span>
+            </>
+          )}
+        </p>
         <WishButton productId={p.id} name={p.name} label />
         <p className="detail-description">{p.description}</p>
         <fieldset className="variant-fieldset">
@@ -109,6 +132,9 @@ export function ProductDetail({
           {stockLabel(v?.stock_quantity || 0)}
           {already > 0 && <small>· {already} already in your bag</small>}
         </p>
+        {v && v.stock_quantity === 0 && (
+          <NotifyMe key={v.id} variantId={v.id} signedIn={signedIn} />
+        )}
         <div className="add-row">
           <div className="quantity-control">
             <button
