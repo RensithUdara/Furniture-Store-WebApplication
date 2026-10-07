@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your phone number was changed</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f7fb;">
+    <span style="display:none;max-height:0;overflow:hidden;opacity:0;">A security notice about your account.</span>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7fb;padding:32px 12px;font-family:Arial,Helvetica,sans-serif;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="background:#16213e;padding:26px 32px;border-bottom:5px solid #e8a41c;">
+                <span style="font-size:30px;font-weight:bold;color:#ffffff;">forma</span>
+                <span style="font-size:15px;font-weight:bold;color:#e8a41c;">&nbsp;&amp; co.</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:34px 32px 10px;">
+                <h1 style="margin:0 0 14px;font-size:24px;line-height:1.3;color:#1a2238;">Your phone number was changed</h1>
+                <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#5d6579;">The phone number on your Forma &amp; Co. account was changed from <strong>{{ .OldPhone }}</strong> to <strong>{{ .Phone }}</strong>.</p><p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#5d6579;">If you made this change, there is nothing more to do.</p><table width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 18px;"><tr><td style="background:#f9e5df;border-left:4px solid #a23f2d;border-radius:8px;padding:14px 16px;font-size:14px;line-height:1.6;color:#7c2f21;"><strong>Was this not you?</strong> Reset your password straight away from the sign-in page and contact us on 0761155638 so we can help secure your account.</td></tr></table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 32px 30px;">
+                <hr style="border:0;border-top:1px solid #e2e6ef;margin:0 0 16px;">
+                <p style="margin:0 0 6px;font-size:12px;line-height:1.6;color:#5d6579;">
+                  <strong style="color:#1a2238;">Forma &amp; Co.</strong> &middot; 10/12, Galle Road, Hikkaduwa
+                </p>
+                <p style="margin:0 0 6px;font-size:12px;line-height:1.6;color:#5d6579;">
+                  Call 0761155638 / 0912245632 &middot; <a href="{{ .SiteURL }}" style="color:#b9770a;">Visit the store</a>
+                </p>
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#8a91a3;">
+                  This is an automated message about your Forma &amp; Co. account. Please do not reply to it.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
