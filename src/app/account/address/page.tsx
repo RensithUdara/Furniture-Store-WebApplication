@@ -22,10 +22,7 @@ export default async function AccountAddress() {
         <AddressBook addresses={addresses} zones={zones} />
       ) : p?.address_line1 === undefined ? (
         // Neither the address book (migration 011) nor the single address (005) exists yet.
-        <div className="info-message">
-          Saved addresses are not switched on yet. The store owner needs to run{" "}
-          <code>supabase/migrations/011_shopping.sql</code>.
-        </div>
+        <div className="info-message">Saved addresses are not available at the moment.</div>
       ) : (
         <section className="form-card">
           <h2>Delivery address</h2>

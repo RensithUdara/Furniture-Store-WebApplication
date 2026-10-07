@@ -19,10 +19,7 @@ export default async function AccountWishlist() {
         <p>Pieces you have saved for later. Prices and stock are always current.</p>
       </div>
       {ids === null ? (
-        <div className="info-message">
-          The wishlist is not switched on yet. The store owner needs to run{" "}
-          <code>supabase/migrations/006_rewards.sql</code>.
-        </div>
+        <div className="info-message">The wishlist is not available at the moment.</div>
       ) : saved.length ? (
         <div className="product-grid wishlist-grid">
           {saved.map((p) => (

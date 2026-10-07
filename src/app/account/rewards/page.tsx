@@ -26,10 +26,7 @@ export default async function AccountRewards() {
         <p>Earn points on every delivered order and spend them at checkout.</p>
       </div>
       {ledger === null || rate == null || value == null ? (
-        <div className="info-message">
-          Reward points are not switched on yet. The store owner needs to run{" "}
-          <code>supabase/migrations/006_rewards.sql</code>.
-        </div>
+        <div className="info-message">Reward points are not available at the moment.</div>
       ) : (
         <>
           <div className="points-hero">
