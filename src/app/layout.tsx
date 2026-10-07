@@ -15,6 +15,7 @@ import { getSettings } from "@/services/settings";
 import { getWishlistIds } from "@/services/rewards";
 import { WishlistProvider } from "@/components/wishlist-provider";
 import { CompareProvider } from "@/components/shop-extras";
+import { SITE_NAME, siteUrl } from "@/lib/seo";
 import "./reset.css";
 import "./globals.css";
 import "./theme.css";
@@ -26,11 +27,29 @@ const poppins = Poppins({
   variable: "--font-body",
   display: "swap",
 });
-export const metadata: Metadata = {
-  title: { default: "Forma & Co. — Furniture for a life well lived", template: "%s | Forma & Co." },
-  description:
-    "Thoughtfully selected furniture for modern homes and workspaces. Explore sofas, chairs, tables, beds, and more at Forma & Co.",
-};
+const description =
+  "Thoughtfully selected furniture for modern homes and workspaces. Explore sofas, chairs, tables, beds, and more at Forma & Co.";
+// A function, so the site address is read when a page is served and not fixed at build time.
+// Pages add their own title, description and image; these are the defaults for sharing.
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: new URL(siteUrl()),
+    title: {
+      default: "Forma & Co. — Furniture for a life well lived",
+      template: "%s | Forma & Co.",
+    },
+    description,
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      locale: "en_LK",
+      title: "Forma & Co. — Furniture for a life well lived",
+      description,
+      images: [{ url: "/images/hero.jpg", alt: "A living room furnished by Forma & Co." }],
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const fonts = poppins.variable;
   // All content is database-driven, so without a database there is nothing to show.
@@ -68,7 +87,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </a>
         <ConfirmProvider>
           <StoreProvider value={{ whatsapp: whatsappNumber(), settings }}>
-            <CartProvider>
+            <CartProvider
+              // Signed-in customers' bags are also kept on the server (migration 014).
+              sync={Boolean(user) && settings?.cart_reminder_hours !== undefined}
+            >
               <WishlistProvider initial={wishlist} signedIn={Boolean(user)}>
                 <CompareProvider>
                   <Header
