@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { currentUser } from "@/lib/auth";
@@ -6,7 +7,12 @@ import { getSettings } from "@/services/settings";
 import { TrackForm } from "@/components/track-form";
 import { OrderCard } from "@/components/order-history";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Track your order" };
+export const metadata = pageMeta({
+  title: "Track your order",
+  description:
+    "Follow your Forma & Co. furniture order from confirmation to delivery with your order number and email or phone.",
+  path: "/track",
+});
 export default async function Track() {
   const [user, settings] = await Promise.all([currentUser(), getSettings()]);
   // Signed-in customers see their orders in progress straight away; anyone can use the lookup.

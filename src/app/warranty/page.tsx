@@ -1,6 +1,12 @@
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { InfoPage } from "@/components/info-page";
-export const metadata = { title: "Warranty policy" };
+export const metadata = pageMeta({
+  title: "Warranty policy",
+  description:
+    "What the Forma & Co. furniture warranty covers, how long it lasts, and how to make a claim.",
+  path: "/warranty",
+});
 export default function Warranty() {
   return (
     <InfoPage
