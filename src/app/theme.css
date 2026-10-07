@@ -4094,3 +4094,158 @@ td small.wrap {
     letter-spacing: 0.02em;
   }
 }
+
+/* ---------- Marketing: flash sales, countdown, newsletter ---------- */
+.countdown {
+  display: inline-flex;
+  gap: 6px;
+}
+.countdown > span {
+  display: grid;
+  justify-items: center;
+  min-width: 46px;
+  padding: 6px 6px 5px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #fff;
+  line-height: 1.1;
+}
+.countdown b {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.countdown small {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+.countdown-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cf3f0a;
+  font-variant-numeric: tabular-nums;
+}
+.flash-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 4px 0 14px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: #fff1e8;
+  color: #9a3412;
+  font-weight: 600;
+}
+.flash-note > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.flash-banner {
+  background: linear-gradient(100deg, var(--navy), #2a3a6b);
+  color: #fff;
+}
+.flash-banner .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 28px;
+  padding-block: 22px;
+}
+.flash-banner .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold);
+}
+.flash-banner h2 {
+  margin: 4px 0 0;
+  font-size: clamp(20px, 2.4vw, 28px);
+  color: #fff;
+}
+.flash-banner-timer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.flash-banner-timer small {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  opacity: 0.8;
+}
+.flash-banner .countdown > span {
+  background: rgb(255 255 255 / 0.14);
+}
+.newsletter {
+  margin-top: 20px;
+  max-width: 380px;
+}
+.newsletter h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.newsletter form {
+  display: flex;
+  gap: 8px;
+}
+.newsletter input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.08);
+  color: inherit;
+}
+.newsletter input::placeholder {
+  color: inherit;
+  opacity: 0.55;
+}
+.newsletter .button {
+  height: 44px;
+  flex: none;
+}
+.newsletter small {
+  display: block;
+  margin-top: 8px;
+  font-size: 12.5px;
+  opacity: 0.7;
+}
+.newsletter-done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+  color: #86efac;
+}
+.newsletter-error {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: #fca5a5;
+}
+.pick-list b s {
+  font-weight: 400;
+  color: var(--muted);
+}
+@media (max-width: 640px) {
+  .flash-banner .container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .flash-banner .button {
+    width: 100%;
+  }
+}
