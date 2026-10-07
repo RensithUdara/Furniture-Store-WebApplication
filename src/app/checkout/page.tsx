@@ -5,6 +5,7 @@ import { currentUser } from "@/lib/auth";
 import { payhere, serviceKey } from "@/lib/config";
 import { CheckoutForm } from "@/components/checkout-form";
 import { getSettings } from "@/services/settings";
+import { getBundles } from "@/services/catalog";
 import { getAddresses, getZones } from "@/services/shopping";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Checkout" };
@@ -58,6 +59,7 @@ export default async function Checkout({
         guest={guest}
         zones={zones}
         addresses={addresses}
+        bundles={(await getBundles()) || []}
         name={user?.profile?.name}
         email={user?.email}
         phone={user?.profile?.phone}

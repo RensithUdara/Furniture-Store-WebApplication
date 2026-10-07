@@ -9,7 +9,8 @@ import {
   Store,
   Truck,
 } from "lucide-react";
-import { getCategories, getProducts } from "@/services/catalog";
+import { getCategories, getProducts, getShopBundles } from "@/services/catalog";
+import { BundleCard } from "@/components/bundle-card";
 import { getSettings } from "@/services/settings";
 import { getSlides } from "@/services/slides";
 import { ProductCard } from "@/components/product-card";
@@ -48,6 +49,7 @@ export default async function Home() {
     getSettings(),
     getSlides(),
   ]);
+  const sets = (await getShopBundles(products)).slice(0, 2);
   const parents = categories.filter((c) => !c.parent_id);
   const featured = products.filter((p) => p.is_featured).slice(0, 4);
   const arrivals = products.filter((p) => !featured.includes(p)).slice(0, 8);
@@ -142,6 +144,28 @@ export default async function Home() {
           <div className="product-grid">
             {arrivals.map((p) => (
               <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+      {sets.length > 0 && (
+        <section className="section container">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Complete the room</span>
+              <h2>Room sets</h2>
+            </div>
+            <Link className="text-link" href="/bundles">
+              See every set <ArrowRight size={17} />
+            </Link>
+          </div>
+          <div className="bundle-list">
+            {sets.map((b) => (
+              <BundleCard
+                key={b.id}
+                bundle={b}
+                products={b.product_ids.flatMap((id) => products.find((p) => p.id === id) || [])}
+              />
             ))}
           </div>
         </section>
