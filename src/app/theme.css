@@ -1740,3 +1740,65 @@ a.stat-card:hover {
     display: none;
   }
 }
+/* Staff roles */
+.admin-role {
+  display: block;
+  margin: -2px 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.permission-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.permission-list legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.permission-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.permission-option:has(input:checked) {
+  border-color: var(--gold);
+  background: var(--accent-soft);
+}
+.permission-option input {
+  width: 17px;
+  height: 17px;
+  margin-top: 3px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+.permission-option strong,
+.permission-option small {
+  display: block;
+}
+.permission-option small {
+  font-size: 13px;
+  color: var(--muted);
+}
+td select {
+  padding: 8px 10px;
+  font-size: 13.5px;
+}
+@media (max-width: 960px) {
+  .admin-role {
+    display: none;
+  }
+}
