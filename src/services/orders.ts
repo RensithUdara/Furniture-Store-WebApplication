@@ -1,7 +1,7 @@
 import "server-only";
 import { supabase } from "@/lib/supabase/server";
 import { requirePermission, requireUser } from "@/lib/auth";
-import type { Order, PaymentEvent } from "@/types";
+import type { Order, OrderEvent, PaymentEvent } from "@/types";
 export async function getOrders(admin = false): Promise<Order[]> {
   // The dashboard summarises orders, so it may read them too.
   const user = admin ? await requirePermission("orders", "dashboard") : await requireUser();
@@ -34,4 +34,26 @@ export async function getPaymentEvents(orderId: string): Promise<PaymentEvent[]>
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as PaymentEvent[];
+}
+// The order's tracking history. Row-level security returns it only to the customer who placed
+// the order or to staff who may see orders. Empty until migration 009 has been run.
+export async function getOrderEvents(orderId: string): Promise<OrderEvent[]> {
+  await requireUser();
+  const db = await supabase();
+  const { data, error } = await db
+    .from("order_events")
+    .select("id,event,detail,created_at")
+    .eq("order_id", orderId)
+    .order("id");
+  if (error) {
+    if (error.code === "PGRST205" || error.code === "42P01") return [];
+    throw error;
+  }
+  return data as OrderEvent[];
+}
+// Whether the tracking-history table exists yet, for the admin's "database update needed" notice.
+export async function orderEventsReady() {
+  const db = await supabase();
+  const { error } = await db.from("order_events").select("id").limit(1);
+  return !(error && (error.code === "PGRST205" || error.code === "42P01"));
 }

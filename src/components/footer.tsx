@@ -115,6 +115,7 @@ export function Footer({ categories }: { categories: Category[] }) {
           </nav>
           <nav aria-label="Customer care">
             <h3>Customer care</h3>
+            <Link href="/track">Track your order</Link>
             <Link href="/faq">FAQ</Link>
             <Link href="/help">Delivery & care</Link>
             <Link href="/warranty">Warranty policy</Link>

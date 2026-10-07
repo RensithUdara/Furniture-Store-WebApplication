@@ -159,3 +159,5 @@ export type StaffMember = {
   staff_role_id: string | null;
   created_at: string;
 };
+// One entry in an order's tracking history (migration 009).
+export type OrderEvent = { id: number; event: string; detail: string; created_at: string };

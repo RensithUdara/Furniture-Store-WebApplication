@@ -28,6 +28,7 @@ import { navigate } from "@/components/navigation-progress";
 import { money, phoneNumbers } from "@/lib/format";
 import type { Category } from "@/types";
 const pages = [
+  { href: "/track", name: "Track order" },
   { href: "/faq", name: "FAQ" },
   { href: "/help", name: "Delivery & care" },
 ];
@@ -215,7 +216,7 @@ export function Header({
               </li>
             </ul>
             <div className="catbar-extra">
-              <Link href="/account/orders">
+              <Link className={path === "/track" ? "active" : ""} href="/track">
                 <PackageSearch size={17} /> <span>Track order</span>
               </Link>
               <Link className={path === "/faq" ? "active" : ""} href="/faq">

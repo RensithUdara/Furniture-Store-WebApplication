@@ -224,3 +224,11 @@ export const staffRoleSchema = z.object({
     .max(AREA_KEYS.length)
     .transform((list) => [...new Set(list)]),
 });
+// Tracking an order without signing in: its number, plus the phone or email it was placed with.
+export const trackSchema = z.object({
+  order_number: z
+    .string()
+    .trim()
+    .regex(/^FRM-[A-F0-9]{12}$/i, "Enter the order number exactly as shown, e.g. FRM-1A2B3C4D5E6F"),
+  contact: z.string().trim().min(5, "Enter the phone number or email used on the order").max(254),
+});
