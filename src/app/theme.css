@@ -2338,3 +2338,63 @@ td small.wrap {
     width: 100%;
   }
 }
+/* Delivery tracking */
+.tracking-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  background: var(--blue-bg);
+  border: 1px solid #c9dcee;
+  border-radius: var(--radius);
+}
+.tracking-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--blue);
+  color: #fff;
+  flex-shrink: 0;
+}
+.tracking-card strong {
+  display: block;
+  font-size: 16px;
+}
+.tracking-card p {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+.tracking-card dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin: 8px 0 0;
+}
+.tracking-card dt {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.tracking-card dd {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.tracking-number {
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.04em;
+  user-select: all;
+}
+.order-card-tracking {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: var(--blue);
+}
