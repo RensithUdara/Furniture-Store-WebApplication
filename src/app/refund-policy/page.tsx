@@ -1,6 +1,12 @@
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { InfoPage } from "@/components/info-page";
-export const metadata = { title: "Refund policy" };
+export const metadata = pageMeta({
+  title: "Refund policy",
+  description:
+    "When and how you can return furniture bought from Forma & Co., and how refunds are paid.",
+  path: "/refund-policy",
+});
 export default function RefundPolicy() {
   return (
     <InfoPage

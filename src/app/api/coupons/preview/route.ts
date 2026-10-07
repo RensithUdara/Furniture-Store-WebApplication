@@ -3,6 +3,11 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { apiError, checkOrigin, dbError, HttpError, readJson } from "@/lib/http";
+import { rateLimit } from "@/lib/rate-limit";
+import { bundleDiscount } from "@/lib/bundles";
+import { getBundles } from "@/services/catalog";
+import { getFlashSales } from "@/services/marketing";
+import { flashFor, flashPrice } from "@/lib/flash";
 const body = z.object({
   code: z.string().trim().min(3).max(30),
   items: z
@@ -15,25 +20,34 @@ const body = z.object({
 export async function POST(request: Request) {
   try {
     checkOrigin(request);
-    await requireUser();
+    const user = await requireUser();
+    // Signed-in users only, so the limit follows the account and cannot be dodged by changing address.
+    await rateLimit("coupon-user", user.id, 12, 600);
     const { code, items } = body.parse(await readJson(request));
     const db = await supabase();
     const { data: variants, error } = await db
       .from("product_variants")
-      .select("id,price")
+      .select("id,price,product_id")
       .in(
         "id",
         items.map((i) => i.variant_id),
       );
     if (error) dbError(error);
-    const subtotal = items.reduce(
-      (sum, i) =>
-        sum + Number(variants?.find((v) => v.id === i.variant_id)?.price || 0) * i.quantity,
-      0,
-    );
+    // Start from the prices the order itself will use: flash-sale prices while a sale runs.
+    const sales = (await getFlashSales()) || [];
+    const lines = items.flatMap((i) => {
+      const v = variants?.find((v) => v.id === i.variant_id);
+      if (!v) return [];
+      const sale = flashFor(v.product_id, sales);
+      const price = sale ? flashPrice(Number(v.price), sale.discount_percent) : Number(v.price);
+      return [{ product_id: v.product_id as string, quantity: i.quantity, price }];
+    });
+    const subtotal = lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+    // A coupon applies to what is left after any room-set discount, as it does on the order.
+    const sets = bundleDiscount(lines, (await getBundles()) || []).amount;
     const { data, error: rpcError } = await db.rpc("preview_coupon", {
       p_code: code,
-      p_subtotal: subtotal,
+      p_subtotal: Math.max(0, subtotal - sets),
     });
     // PGRST202: the function does not exist until migration 006 has been run.
     if (rpcError?.code === "PGRST202") throw new HttpError(503, "Coupons are not available yet.");

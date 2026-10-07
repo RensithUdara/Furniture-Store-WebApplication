@@ -1,9 +1,15 @@
+import { pageMeta } from "@/lib/seo";
 import { InfoPage } from "@/components/info-page";
 import { payhere } from "@/lib/config";
 import { getSettings } from "@/services/settings";
 import { money } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Delivery, care & ordering" };
+export const metadata = pageMeta({
+  title: "Delivery, care & ordering",
+  description:
+    "How delivery and store pickup work at Forma & Co., how to place an order, and how to care for timber, fabric and leather furniture.",
+  path: "/help",
+});
 export default async function Help() {
   const settings = await getSettings();
   return (

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getOrder } from "@/services/orders";
+import { getOrderByAccess } from "@/services/orders";
 import { getSettings } from "@/services/settings";
 import { invoicePdf } from "@/lib/invoice";
 import { appUrl, whatsappNumber } from "@/lib/config";
@@ -9,7 +9,10 @@ export const runtime = "nodejs";
 // it to the customer who placed it or to an admin, and everyone else gets "not found".
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const order = await getOrder(z.uuid().parse((await params).id));
+    const order = await getOrderByAccess(
+      z.uuid().parse((await params).id),
+      new URL(request.url).searchParams.get("token"),
+    );
     if (!order) throw new HttpError(404, "Order not found.");
     const bytes = await invoicePdf(order, {
       whatsapp: whatsappNumber(),

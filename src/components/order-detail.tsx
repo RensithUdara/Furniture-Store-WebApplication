@@ -1,14 +1,30 @@
 import Link from "next/link";
-import { ArrowLeft, Check, Download, Truck, Mail, MessageCircle, Phone } from "lucide-react";
-import { money, dateTime, label, deliveryLabel } from "@/lib/format";
+import {
+  ArrowLeft,
+  CalendarClock,
+  Download,
+  Truck,
+  Mail,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
+import { money, dateTime, label, deliveryLabel, shortDate } from "@/lib/format";
 import { whatsappMessage } from "@/lib/whatsapp";
 import { payhere } from "@/lib/config";
 import { Badge, Method } from "@/components/order-table";
 import { OrderActions } from "@/components/order-actions";
-import type { Order, PaymentEvent, StoreSettings } from "@/types";
-const steps = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] as const;
-const stepNames = ["Order placed", "Confirmed", "Processing", "Shipped", "Delivered"];
-const pickupNames = ["Order placed", "Confirmed", "Preparing", "Ready for pickup", "Collected"];
+import type {
+  Order,
+  OrderEvent,
+  PaymentEvent,
+  Refund,
+  ReturnRequest,
+  StoreSettings,
+} from "@/types";
+import { ReturnPanel } from "@/components/account-extras";
+import { RefundPanel } from "@/components/admin/order-tools";
+import { Printer } from "lucide-react";
+import { OrderProgress, TrackingHistory } from "@/components/order-tracking";
 const payhereStatus: Record<number, string> = {
   2: "Success",
   0: "Pending",
@@ -23,21 +39,53 @@ export function OrderDetail({
   returned = false,
   payments = [],
   settings = null,
+  events = [],
+  guestToken,
+  returnRequest = null,
+  refunds = [],
+  payhereRefunds = false,
 }: {
+  // Admin only: refunds recorded for this order, and whether PayHere refunds are set up.
+  refunds?: Refund[];
+  payhereRefunds?: boolean;
   order: Order;
   admin?: boolean;
   created?: boolean;
   returned?: boolean;
   payments?: PaymentEvent[];
   settings?: StoreSettings | null;
+  events?: OrderEvent[];
+  // Set on a guest's order page: it replaces the sign-in for payment and the bill.
+  guestToken?: string;
+  returnRequest?: ReturnRequest | null;
 }) {
-  const current = steps.indexOf(o.order_status as (typeof steps)[number]);
   const local = o.customer_phone.replace(/^\+94|^0/, "");
   const pickup = o.fulfillment_method === "PICKUP";
+  const windowDays = settings?.return_window_days;
+  // The delivery window promised at checkout, until the order has arrived or been cancelled.
+  const estimate =
+    o.estimated_from && o.estimated_to && !["DELIVERED", "CANCELLED"].includes(o.order_status)
+      ? o.estimated_from === o.estimated_to
+        ? shortDate(o.estimated_from)
+        : `${shortDate(o.estimated_from)} – ${shortDate(o.estimated_to)}`
+      : "";
+  // When an unpaid online order will be cancelled, if that is switched on.
+  const expiry = settings?.unpaid_expiry_minutes;
+  const deadline =
+    !admin &&
+    expiry &&
+    o.payment_method === "PAYHERE" &&
+    o.order_status === "PENDING" &&
+    o.payment_status !== "PAID"
+      ? new Date(Date.parse(o.created_at) + expiry * 60000).toISOString()
+      : null;
   return (
     <>
-      <Link className="back-link" href={admin ? "/admin/orders" : "/account/orders"}>
-        <ArrowLeft size={15} /> All orders
+      <Link
+        className="back-link"
+        href={admin ? "/admin/orders" : guestToken ? "/products" : "/account/orders"}
+      >
+        <ArrowLeft size={15} /> {guestToken ? "Continue shopping" : "All orders"}
       </Link>
       <div className="order-topline">
         <div>
@@ -53,7 +101,7 @@ export function OrderDetail({
           {/* A file download, not a page: the download attribute keeps the loading indicator out of it. */}
           <a
             className="button button-outline button-small"
-            href={`/api/orders/${o.id}/invoice`}
+            href={`/api/orders/${o.id}/invoice${guestToken ? `?token=${guestToken}` : ""}`}
             download
           >
             <Download size={15} /> Download bill
@@ -78,23 +126,26 @@ export function OrderDetail({
           verified notification. You can refresh this page or return to your order history later.
         </div>
       )}
+      {deadline && (
+        <div className="info-message">
+          <strong>Complete your payment by {dateTime(deadline)}.</strong> After that this order is
+          cancelled automatically and the items go back on sale.
+        </div>
+      )}
+      {estimate && (
+        <div className="estimate-note">
+          <CalendarClock size={18} />
+          <span>
+            Estimated delivery to {o.district}: <strong>{estimate}</strong>
+          </span>
+        </div>
+      )}
       {o.order_status === "CANCELLED" ? (
         <div className="error-message">
           This order was cancelled on {dateTime(o.updated_at)}. Reserved stock has been released.
         </div>
       ) : (
-        <ol className="timeline" aria-label="Order progress">
-          {steps.map((s, i) => (
-            <li
-              key={s}
-              className={i < current ? "done" : i === current ? "done current" : ""}
-              aria-current={i === current ? "step" : undefined}
-            >
-              <span>{i <= current ? <Check size={14} /> : i + 1}</span>
-              {(pickup ? pickupNames : stepNames)[i]}
-            </li>
-          ))}
-        </ol>
+        <OrderProgress status={o.order_status} pickup={pickup} />
       )}
       {!pickup && ["SHIPPED", "DELIVERED"].includes(o.order_status) && (
         <div className="tracking-card">
@@ -157,7 +208,32 @@ export function OrderDetail({
               </tbody>
             </table>
           </div>
-          <OrderActions order={o} admin={admin} />
+          <OrderActions order={o} admin={admin} guestToken={guestToken} />
+          <TrackingHistory events={events} pickup={pickup} />
+          {windowDays !== undefined && (
+            <ReturnPanel
+              orderId={o.id}
+              request={returnRequest}
+              admin={admin}
+              windowDays={windowDays}
+              canRequest={!guestToken && o.order_status === "DELIVERED" && windowDays > 0}
+            />
+          )}
+          {admin &&
+            o.refunded_amount !== undefined &&
+            (o.payment_status === "PAID" || refunds.length > 0) && (
+              <RefundPanel order={o} refunds={refunds} payhereReady={payhereRefunds} />
+            )}
+          {admin && (
+            <p className="order-tools">
+              <Link
+                className="button button-outline button-small"
+                href={`/admin/orders/${o.id}/print`}
+              >
+                <Printer size={15} /> Packing slip and delivery note
+              </Link>
+            </p>
+          )}
           {o.payment_method === "WHATSAPP" && (
             <details className="message-preview">
               <summary>
@@ -213,6 +289,12 @@ export function OrderDetail({
               <span>{pickup ? "Store pickup" : "Delivery"}</span>
               <span>{pickup ? "Free" : deliveryLabel(Number(o.delivery_fee))}</span>
             </div>
+            {Number(o.bundle_discount) > 0 && (
+              <div className="summary-line discount">
+                <span>Set saving ({o.bundle_names})</span>
+                <span>− {money(Number(o.bundle_discount))}</span>
+              </div>
+            )}
             {Number(o.discount_amount) > 0 && (
               <div className="summary-line discount">
                 <span>Coupon {o.coupon_code}</span>
@@ -229,6 +311,12 @@ export function OrderDetail({
               <span>Total</span>
               <span>{money(o.total_amount)}</span>
             </div>
+            {Number(o.refunded_amount) > 0 && (
+              <div className="summary-line discount">
+                <span>Refunded</span>
+                <span>− {money(Number(o.refunded_amount))}</span>
+              </div>
+            )}
             <p className="summary-note">
               {o.payment_method === "PAYHERE"
                 ? `PayHere${payhere().mode === "sandbox" ? " Sandbox" : ""} · payment ${label(o.payment_status)}`

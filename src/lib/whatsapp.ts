@@ -28,6 +28,9 @@ export function whatsappMessage(order: Order) {
     pickup
       ? "Store pickup: Free"
       : `Delivery: ${Number(order.delivery_fee) ? money(order.delivery_fee) : "Free"}`,
+    ...(Number(order.bundle_discount) > 0
+      ? [`Room set saving (${order.bundle_names}): -${money(Number(order.bundle_discount))}`]
+      : []),
     ...(Number(order.discount_amount) > 0
       ? [`Coupon ${order.coupon_code}: -${money(Number(order.discount_amount))}`]
       : []),

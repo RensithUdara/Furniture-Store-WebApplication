@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
 import { accountUser } from "@/lib/account";
@@ -5,7 +6,7 @@ import { getProducts } from "@/services/catalog";
 import { getWishlistIds } from "@/services/rewards";
 import { ProductCard } from "@/components/product-card";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "My wishlist" };
+export const metadata = { title: "My wishlist", robots: PRIVATE };
 export default async function AccountWishlist() {
   await accountUser("/account/wishlist");
   const [ids, products] = await Promise.all([getWishlistIds(), getProducts()]);
@@ -19,10 +20,7 @@ export default async function AccountWishlist() {
         <p>Pieces you have saved for later. Prices and stock are always current.</p>
       </div>
       {ids === null ? (
-        <div className="info-message">
-          The wishlist is not switched on yet. The store owner needs to run{" "}
-          <code>supabase/migrations/006_rewards.sql</code>.
-        </div>
+        <div className="info-message">The wishlist is not available at the moment.</div>
       ) : saved.length ? (
         <div className="product-grid wishlist-grid">
           {saved.map((p) => (

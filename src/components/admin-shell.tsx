@@ -4,6 +4,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Armchair,
+  BarChart3,
+  Contact,
+  ScrollText,
   ClipboardList,
   ExternalLink,
   Images,
@@ -39,7 +42,13 @@ const groups: { name: string; areas: Area[] }[] = [
 const team = [
   { href: "/admin/staff", name: "Staff accounts", icon: Users },
   { href: "/admin/roles", name: "Roles", icon: KeyRound },
+  { href: "/admin/activity", name: "Activity log", icon: ScrollText },
 ];
+// Extra pages that belong to an area and are open to whoever may use that area.
+const extras: Partial<Record<Area, { href: string; name: string; icon: typeof Users }[]>> = {
+  dashboard: [{ href: "/admin/reports", name: "Reports", icon: BarChart3 }],
+  orders: [{ href: "/admin/customers", name: "Customers", icon: Contact }],
+};
 // The admin panel's own frame: sidebar, top bar, and content. It shows only the areas this
 // person may use. Hiding a link is a convenience, not the protection: every page, API and
 // database policy checks the permission again.
@@ -64,11 +73,10 @@ export function AdminShell({
   const sections = [
     ...groups.map((g) => ({
       name: g.name,
-      links: AREAS.filter((a) => g.areas.includes(a.key) && areas.includes(a.key)).map((a) => ({
-        href: a.href,
-        name: a.name,
-        icon: icons[a.key],
-      })),
+      links: AREAS.filter((a) => g.areas.includes(a.key) && areas.includes(a.key)).flatMap((a) => [
+        { href: a.href, name: a.name, icon: icons[a.key] },
+        ...(extras[a.key] || []),
+      ]),
     })),
     { name: "Team", links: admin ? team : [] },
   ].filter((s) => s.links.length);

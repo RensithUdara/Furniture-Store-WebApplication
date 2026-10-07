@@ -1,5 +1,5 @@
 import { guardAdminPage } from "@/lib/auth";
-import { getCategories } from "@/services/catalog";
+import { getBundles, getCategories } from "@/services/catalog";
 import { ProductForm } from "@/components/admin/product-form";
 export const metadata = { title: "Add product" };
 export default async function NewProduct() {
@@ -13,7 +13,10 @@ export default async function NewProduct() {
           <p>Bring a new piece into the collection.</p>
         </div>
       </div>
-      <ProductForm categories={await getCategories(true)} />
+      <ProductForm
+        categories={await getCategories(true)}
+        extras={(await getBundles(true)) !== null}
+      />
     </>
   );
 }

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { ArrowUp, Clock, MapPin, MessageCircle, Phone } from "lucide-react";
 import { useStore, whatsappLink } from "@/components/store-provider";
 import { phoneNumbers } from "@/lib/format";
+import { NewsletterForm } from "@/components/marketing";
 import type { Category } from "@/types";
 const hour = (h: number) => `${((h + 11) % 12) + 1}:00 ${h % 24 < 12 ? "am" : "pm"}`;
 export function Footer({ categories }: { categories: Category[] }) {
@@ -92,6 +93,8 @@ export function Footer({ categories }: { categories: Category[] }) {
               Considered furniture for the way you live. Built on solid timber frames and delivered
               across Sri Lanka.
             </p>
+            {/* The newsletter arrives with migration 014. */}
+            {settings?.cart_reminder_hours !== undefined && <NewsletterForm />}
           </div>
           <nav aria-label="Shop">
             <h3>Shop</h3>
@@ -115,6 +118,7 @@ export function Footer({ categories }: { categories: Category[] }) {
           </nav>
           <nav aria-label="Customer care">
             <h3>Customer care</h3>
+            <Link href="/track">Track your order</Link>
             <Link href="/faq">FAQ</Link>
             <Link href="/help">Delivery & care</Link>
             <Link href="/warranty">Warranty policy</Link>

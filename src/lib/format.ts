@@ -34,3 +34,11 @@ export const phoneNumbers = (value?: string | null) =>
     .split(/[/,;|]/)
     .map((text) => ({ text: text.trim(), tel: text.replace(/[^+\d]/g, "") }))
     .filter((p) => p.tel.length >= 7);
+// A calendar date such as "2026-10-12" shown as "Mon 12 Oct", without time-zone shifting.
+export const shortDate = (value: string) =>
+  new Date(`${value.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-GB", {
+    timeZone: "UTC",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });

@@ -1,8 +1,9 @@
+import { PRIVATE } from "@/lib/seo";
 import { accountUser } from "@/lib/account";
 import { ProfileForm } from "@/components/account-forms";
 import { dateOnly } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Profile" };
+export const metadata = { title: "Profile", robots: PRIVATE };
 export default async function AccountProfile() {
   const user = await accountUser("/account/profile");
   return (

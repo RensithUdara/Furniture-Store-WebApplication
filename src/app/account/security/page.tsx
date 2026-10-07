@@ -1,10 +1,11 @@
+import { PRIVATE } from "@/lib/seo";
 import { ShieldCheck } from "lucide-react";
 import { accountUser } from "@/lib/account";
 import { PasswordForm } from "@/components/account-forms";
 import { LogoutButton } from "@/components/logout-button";
 import { dateTime } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Security" };
+export const metadata = { title: "Security", robots: PRIVATE };
 // Also the landing page for an emailed password-reset link, which signs the user in first.
 export default async function AccountSecurity() {
   const user = await accountUser("/account/security");

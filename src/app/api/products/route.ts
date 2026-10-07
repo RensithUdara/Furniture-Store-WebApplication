@@ -1,30 +1,25 @@
 import { NextResponse } from "next/server";
-import { getCategories, getProducts } from "@/services/catalog";
-import { childSlugs, filterProducts } from "@/lib/catalog-filter";
+import { browse } from "@/services/catalog";
+import { PAGE_SIZE, parseFilter } from "@/lib/catalog-filter";
 import { requirePermission } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validation";
 import { apiError, checkOrigin, dbError, readJson } from "@/lib/http";
-// Public catalog. Optional filters: ?q=&category=&min=&max=&in_stock=1&sort=price-low
+// Public catalog. Optional filters:
+// ?q=&category=&min=&max=&in_stock=1&material=&colour=&size=&room=&sort=price-low
+// (several materials, colours, sizes or rooms are joined with "|").
+// Without ?page it returns every match as an array. With ?page=1 (and optionally &limit=,
+// up to 60) it returns one page: { items, total, page, pages }.
 export async function GET(request: Request) {
   try {
     const q = new URL(request.url).searchParams;
-    const amount = (key: string) => {
-      const n = Number(q.get(key));
-      return q.get(key) && Number.isFinite(n) && n >= 0 ? n : undefined;
-    };
-    const category = q.get("category") || undefined;
-    return NextResponse.json(
-      filterProducts(await getProducts(), {
-        q: q.get("q")?.slice(0, 100),
-        category,
-        children: category ? childSlugs(await getCategories(), category) : undefined,
-        min: amount("min"),
-        max: amount("max"),
-        inStock: q.get("in_stock") === "1",
-        sort: q.get("sort") || undefined,
-      }),
-    );
+    const filter = parseFilter((key) => q.get(key));
+    if (!q.has("page"))
+      return NextResponse.json((await browse(filter, 1, Number.MAX_SAFE_INTEGER)).items);
+    const page = Math.min(10000, Math.max(1, Math.floor(Number(q.get("page"))) || 1));
+    const limit = Math.min(60, Math.max(1, Math.floor(Number(q.get("limit"))) || PAGE_SIZE));
+    const { items, total } = await browse(filter, page, limit);
+    return NextResponse.json({ items, total, page, pages: Math.ceil(total / limit) });
   } catch (e) {
     return apiError(e);
   }

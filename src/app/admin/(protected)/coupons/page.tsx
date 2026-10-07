@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Zap } from "lucide-react";
 import { guardAdminPage } from "@/lib/auth";
 import { getCoupons } from "@/services/rewards";
 import { CouponManager } from "@/components/admin/managers";
@@ -16,12 +18,12 @@ export default async function Coupons() {
             the order is saved.
           </p>
         </div>
+        <Link className="button button-outline" href="/admin/coupons/flash">
+          <Zap size={16} /> Flash sales
+        </Link>
       </div>
       {coupons === null ? (
-        <div className="info-message">
-          Coupons need the latest database update. Run{" "}
-          <code>supabase/migrations/006_rewards.sql</code> in the Supabase SQL editor.
-        </div>
+        <div className="info-message">Coupons are not available yet.</div>
       ) : (
         <CouponManager coupons={coupons} />
       )}

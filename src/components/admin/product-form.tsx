@@ -6,6 +6,7 @@ import { Plus, X } from "lucide-react";
 import { api } from "@/lib/client-api";
 import { navigate } from "@/components/navigation-progress";
 import { productSchema } from "@/lib/validation";
+import { ROOMS, SIZES } from "@/lib/catalog-filter";
 import { ImageUpload } from "@/components/admin/upload";
 import type { Product, Category } from "@/types";
 type EditableVariant = {
@@ -15,6 +16,7 @@ type EditableVariant = {
   color_hex: string;
   material: string;
   price: number;
+  compare_at_price: number | null;
   stock_quantity: number;
   is_active: boolean;
 };
@@ -26,6 +28,7 @@ function newVariant(): EditableVariant {
     color_hex: "#b9aa94",
     material: "",
     price: 0,
+    compare_at_price: null,
     stock_quantity: 0,
     is_active: true,
   };
@@ -33,22 +36,30 @@ function newVariant(): EditableVariant {
 export function ProductForm({
   product: p,
   categories,
+  extras = false,
 }: {
   product?: Product;
   categories: Category[];
+  // Rooms, size and video are saved once migration 012 has been run.
+  extras?: boolean;
 }) {
   const router = useRouter();
   const [variants, setVariants] = useState<EditableVariant[]>(
-    p?.product_variants.map((v) => ({ ...v, price: Number(v.price) })) || [],
+    p?.product_variants.map((v) => ({
+      ...v,
+      price: Number(v.price),
+      compare_at_price: v.compare_at_price ? Number(v.compare_at_price) : null,
+    })) || [],
   );
   const [images, setImages] = useState(p?.product_images.map((i) => i.image_url) || []);
+  const [rooms, setRooms] = useState<string[]>(p?.rooms || []);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const existing = new Set(p?.product_variants.map((v) => v.id) || []);
   function changeVariant(
     id: string,
     field: keyof EditableVariant,
-    value: string | number | boolean,
+    value: string | number | boolean | null,
   ) {
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
   }
@@ -69,6 +80,7 @@ export function ProductForm({
         is_featured: form.has("is_featured"),
         images,
         variants,
+        ...(extras ? { rooms } : {}),
       });
       await api("/api/products", "POST", data);
       navigate(router.push, "/admin/products");
@@ -141,6 +153,48 @@ export function ProductForm({
               maxLength={200}
             />
           </label>
+          {extras && (
+            <>
+              <label className="field">
+                Size
+                <select name="size" defaultValue={p?.size || ""}>
+                  <option value="">Not set</option>
+                  {SIZES.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+                <small>Lets shoppers filter the collection by size.</small>
+              </label>
+              <label className="field">
+                Video link (optional)
+                <input
+                  name="video_url"
+                  type="url"
+                  defaultValue={p?.video_url}
+                  placeholder="https://www.youtube.com/watch?v=…"
+                  maxLength={500}
+                />
+                <small>A YouTube link, or a direct https link to an .mp4 or .webm file.</small>
+              </label>
+              <fieldset className="field full room-picker">
+                <legend>Rooms this piece suits</legend>
+                <div>
+                  {ROOMS.map((r) => (
+                    <label className="check-label" key={r}>
+                      <input
+                        type="checkbox"
+                        checked={rooms.includes(r)}
+                        onChange={() =>
+                          setRooms(rooms.includes(r) ? rooms.filter((v) => v !== r) : [...rooms, r])
+                        }
+                      />
+                      {r}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </>
+          )}
           <label className="check-label">
             <input type="checkbox" name="is_active" defaultChecked={p?.is_active ?? true} />
             Visible in store
@@ -260,6 +314,24 @@ export function ProductForm({
                   onChange={(e) => changeVariant(v.id, "price", Number(e.target.value))}
                   required
                 />
+              </label>
+              <label className="field">
+                Was price (Rs., optional)
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  max="100000000"
+                  value={v.compare_at_price || ""}
+                  onChange={(e) =>
+                    changeVariant(
+                      v.id,
+                      "compare_at_price",
+                      e.target.value ? Number(e.target.value) : null,
+                    )
+                  }
+                />
+                <small>Higher than the price, to show this finish as on sale.</small>
               </label>
               <label className="field">
                 {existing.has(v.id) ? "Available stock (read only)" : "Initial stock"}

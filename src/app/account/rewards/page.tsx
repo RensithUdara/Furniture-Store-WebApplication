@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import { Gift, ShoppingBag, Sparkles } from "lucide-react";
 import { accountUser } from "@/lib/account";
@@ -5,7 +6,7 @@ import { getLedger } from "@/services/rewards";
 import { getSettings } from "@/services/settings";
 import { dateOnly, money } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Reward points" };
+export const metadata = { title: "Reward points", robots: PRIVATE };
 const reasons: Record<string, string> = {
   EARNED: "Earned from an order",
   REDEEMED: "Used at checkout",
@@ -26,10 +27,7 @@ export default async function AccountRewards() {
         <p>Earn points on every delivered order and spend them at checkout.</p>
       </div>
       {ledger === null || rate == null || value == null ? (
-        <div className="info-message">
-          Reward points are not switched on yet. The store owner needs to run{" "}
-          <code>supabase/migrations/006_rewards.sql</code>.
-        </div>
+        <div className="info-message">Reward points are not available at the moment.</div>
       ) : (
         <>
           <div className="points-hero">

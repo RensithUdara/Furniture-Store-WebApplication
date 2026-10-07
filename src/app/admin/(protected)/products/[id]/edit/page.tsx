@@ -19,7 +19,7 @@ export default async function EditProduct({ params }: { params: Promise<{ id: st
           <p>Refine the details, finishes, and imagery.</p>
         </div>
       </div>
-      <ProductForm product={product} categories={categories} />
+      <ProductForm product={product} categories={categories} extras={product.rooms !== undefined} />
     </>
   );
 }

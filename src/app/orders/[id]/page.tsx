@@ -1,11 +1,13 @@
+import { PRIVATE } from "@/lib/seo";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { currentUser } from "@/lib/auth";
-import { getOrder } from "@/services/orders";
+import { getOrder, getOrderEvents } from "@/services/orders";
 import { OrderDetail } from "@/components/order-detail";
+import { getReturn } from "@/services/shopping";
 import { getSettings } from "@/services/settings";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Order details" };
+export const metadata = { title: "Order details", robots: PRIVATE };
 export default async function OrderPage({
   params,
   searchParams,
@@ -24,6 +26,8 @@ export default async function OrderPage({
       <OrderDetail
         order={order}
         settings={await getSettings()}
+        events={await getOrderEvents(id)}
+        returnRequest={await getReturn(id)}
         created={q.created === "1"}
         returned={Boolean(q.payment)}
       />

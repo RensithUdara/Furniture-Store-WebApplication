@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -13,13 +14,22 @@ import {
 } from "lucide-react";
 import { accountUser, isActiveOrder, orderStats } from "@/lib/account";
 import { getOrders } from "@/services/orders";
+import { getAddresses, getStockAlerts } from "@/services/shopping";
+import { StockAlertList } from "@/components/account-extras";
 import { OrderCard } from "@/components/order-history";
 import { money } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Your account" };
+export const metadata = { title: "Your account", robots: PRIVATE };
 export default async function Account() {
   const user = await accountUser("/account");
-  const orders = await getOrders();
+  const [orders, addresses, alerts] = await Promise.all([
+    getOrders(),
+    getAddresses(),
+    getStockAlerts(),
+  ]);
+  const home = addresses?.find((a) => a.is_default) || addresses?.[0];
+  // With the address book (migration 011) that is the source; before it, the single saved address.
+  const noAddress = addresses ? addresses.length === 0 : user.profile?.address_line1 === "";
   const stats = orderStats(orders);
   const profile = user.profile;
   const active = orders.filter(isActiveOrder);
@@ -30,7 +40,7 @@ export default async function Account() {
       icon: UserRound,
       text: "Add a phone number so we can reach you about deliveries.",
     },
-    profile?.address_line1 === "" && {
+    noAddress && {
       href: "/account/address",
       icon: MapPin,
       text: "Save a delivery address to check out faster.",
@@ -107,6 +117,14 @@ export default async function Account() {
           </Link>
         </div>
       )}
+      {alerts.length > 0 && (
+        <>
+          <div className="admin-section-title">
+            <h2>Back-in-stock requests</h2>
+          </div>
+          <StockAlertList alerts={alerts} />
+        </>
+      )}
       <div className="admin-section-title">
         <h2>Account settings</h2>
       </div>
@@ -119,8 +137,18 @@ export default async function Account() {
         </Link>
         <Link href="/account/address">
           <MapPin size={22} />
-          <strong>Saved address</strong>
-          {profile?.address_line1 ? (
+          <strong>Saved addresses</strong>
+          {home ? (
+            <>
+              <span>
+                {home.label}: {home.line1}
+              </span>
+              <span>
+                {home.city} {home.postal_code}
+                {addresses && addresses.length > 1 && ` · ${addresses.length - 1} more`}
+              </span>
+            </>
+          ) : profile?.address_line1 ? (
             <>
               <span>{profile.address_line1}</span>
               <span>

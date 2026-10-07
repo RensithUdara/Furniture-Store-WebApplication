@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { after } from "next/server";
+import { sendCartReminders } from "@/services/marketing";
+import { FlashBanner } from "@/components/marketing";
+import { absolute, jsonLd, pageMeta, SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/seo";
 import {
   ArrowRight,
   Banknote,
@@ -9,7 +13,8 @@ import {
   Store,
   Truck,
 } from "lucide-react";
-import { getCategories, getProducts } from "@/services/catalog";
+import { getCategories, getProducts, getShopBundles } from "@/services/catalog";
+import { BundleCard } from "@/components/bundle-card";
 import { getSettings } from "@/services/settings";
 import { getSlides } from "@/services/slides";
 import { ProductCard } from "@/components/product-card";
@@ -41,6 +46,7 @@ const reasons = (settings: StoreSettings | null) => [
     text: "Prefer to talk it through? Send your full cart to our team in one tap.",
   },
 ];
+export const metadata = pageMeta({ description: SITE_DESCRIPTION, path: "/" });
 export default async function Home() {
   const [categories, products, settings, slides] = await Promise.all([
     getCategories(),
@@ -48,12 +54,71 @@ export default async function Home() {
     getSettings(),
     getSlides(),
   ]);
+  const sets = (await getShopBundles(products)).slice(0, 2);
+  // The running flash sale with the biggest discount, if there is one.
+  const flash = products
+    .flatMap((p) => (p.flash ? [p.flash] : []))
+    .sort((a, b) => b.percent - a.percent)[0];
+  // Abandoned-bag reminders are sent in the background as the store is visited.
+  after(() => sendCartReminders());
   const parents = categories.filter((c) => !c.parent_id);
   const featured = products.filter((p) => p.is_featured).slice(0, 4);
   const arrivals = products.filter((p) => !featured.includes(p)).slice(0, 8);
   return (
     <>
       <h1 className="sr-only">Forma & Co. furniture store</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd([
+            {
+              "@context": "https://schema.org",
+              "@type": "FurnitureStore",
+              "@id": `${siteUrl()}/#store`,
+              name: SITE_NAME,
+              description: SITE_DESCRIPTION,
+              url: siteUrl(),
+              logo: absolute("/images/forma-logo.png"),
+              image: absolute("/images/og-image.jpg"),
+              priceRange: "Rs.",
+              currenciesAccepted: "LKR",
+              paymentAccepted: "Credit card, debit card, cash",
+              areaServed: { "@type": "Country", name: "Sri Lanka" },
+              ...(settings?.store_phone
+                ? { telephone: settings.store_phone.split(/[,/]/)[0].trim() }
+                : {}),
+              ...(settings?.pickup_address
+                ? {
+                    address: {
+                      "@type": "PostalAddress",
+                      streetAddress: settings.pickup_address,
+                      addressCountry: "LK",
+                    },
+                  }
+                : {}),
+              ...(settings?.pickup_open_hour != null && settings.pickup_close_hour != null
+                ? {
+                    openingHours: `Mo-Su ${String(settings.pickup_open_hour).padStart(2, "0")}:00-${String(settings.pickup_close_hour % 24).padStart(2, "0")}:00`,
+                  }
+                : {}),
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: SITE_NAME,
+              url: siteUrl(),
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: `${siteUrl()}/products?q={search_term_string}`,
+                },
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ]),
+        }}
+      />
       {slides.length ? (
         <Carousel slides={slides} />
       ) : (
@@ -128,6 +193,7 @@ export default async function Home() {
           </div>
         </section>
       )}
+      {flash && <FlashBanner name={flash.name} percent={flash.percent} ends={flash.ends_at} />}
       {arrivals.length > 0 && (
         <section className="section container">
           <div className="section-heading">
@@ -142,6 +208,28 @@ export default async function Home() {
           <div className="product-grid">
             {arrivals.map((p) => (
               <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+      {sets.length > 0 && (
+        <section className="section container">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Complete the room</span>
+              <h2>Room sets</h2>
+            </div>
+            <Link className="text-link" href="/bundles">
+              See every set <ArrowRight size={17} />
+            </Link>
+          </div>
+          <div className="bundle-list">
+            {sets.map((b) => (
+              <BundleCard
+                key={b.id}
+                bundle={b}
+                products={b.product_ids.flatMap((id) => products.find((p) => p.id === id) || [])}
+              />
             ))}
           </div>
         </section>

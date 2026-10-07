@@ -224,6 +224,9 @@ export async function invoicePdf(order: Order, brand: InvoiceBrand) {
       pickup ? "Store pickup" : "Delivery",
       pickup || !Number(order.delivery_fee) ? "Free" : money(order.delivery_fee),
     ],
+    ...(Number(order.bundle_discount) > 0
+      ? ([["Room set saving", `- ${money(Number(order.bundle_discount))}`]] as [string, string][])
+      : []),
     ...(Number(order.discount_amount) > 0
       ? ([[`Coupon ${order.coupon_code}`, `- ${money(Number(order.discount_amount))}`]] as [
           string,

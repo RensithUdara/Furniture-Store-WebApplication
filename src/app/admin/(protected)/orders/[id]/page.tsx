@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { guardAdminPage } from "@/lib/auth";
-import { getOrder, getPaymentEvents } from "@/services/orders";
+import { getOrder, getOrderEvents, getPaymentEvents } from "@/services/orders";
 import { OrderDetail } from "@/components/order-detail";
+import { getReturn } from "@/services/shopping";
+import { getSettings } from "@/services/settings";
+import { getRefunds } from "@/services/admin";
+import { payhereRefundReady } from "@/lib/payments/refund";
 export const metadata = { title: "Manage order" };
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   if (!(await guardAdminPage("orders"))) return null;
@@ -10,5 +14,16 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   if (!z.uuid().safeParse(id).success) notFound();
   const order = await getOrder(id);
   if (!order) notFound();
-  return <OrderDetail order={order} admin payments={await getPaymentEvents(id)} />;
+  return (
+    <OrderDetail
+      order={order}
+      admin
+      payments={await getPaymentEvents(id)}
+      events={await getOrderEvents(id)}
+      returnRequest={await getReturn(id)}
+      settings={await getSettings()}
+      refunds={await getRefunds(id)}
+      payhereRefunds={payhereRefundReady()}
+    />
+  );
 }

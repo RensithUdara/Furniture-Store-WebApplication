@@ -1,14 +1,21 @@
 "use client";
+import { SearchBox } from "@/components/search-box";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  ArrowRight,
   ChevronDown,
+  ChevronRight,
+  CircleHelp,
+  LayoutGrid,
+  PackageSearch,
+  ShieldCheck,
+  Sparkles,
   Heart,
   Menu,
   MessageCircle,
   Phone,
-  Search,
   ShoppingCart,
   Truck,
   UserRound,
@@ -17,10 +24,10 @@ import {
 import { useCart } from "@/components/cart-provider";
 import { useStore } from "@/components/store-provider";
 import { useWishlist } from "@/components/wishlist-provider";
-import { navigate } from "@/components/navigation-progress";
 import { money, phoneNumbers } from "@/lib/format";
 import type { Category } from "@/types";
 const pages = [
+  { href: "/track", name: "Track order" },
   { href: "/faq", name: "FAQ" },
   { href: "/help", name: "Delivery & care" },
 ];
@@ -42,7 +49,6 @@ export function Header({
   const count = items.reduce((a, i) => a + i.quantity, 0);
   const [open, setOpen] = useState(false);
   const path = usePathname();
-  const router = useRouter();
   useEffect(() => setOpen(false), [path]);
   // Categories and their sub-categories come from the database, so the menu follows the catalog.
   const parents = categories.filter((c) => !c.parent_id);
@@ -87,28 +93,7 @@ export function Header({
           <Link className="wordmark" href="/">
             forma<span>& co.</span>
           </Link>
-          <form
-            className="nav-search"
-            action="/products"
-            role="search"
-            onSubmit={(e) => {
-              // Navigate in the app (no full reload); the plain action still works without script.
-              e.preventDefault();
-              const q = String(new FormData(e.currentTarget).get("q") || "").trim();
-              navigate(router.push, q ? `/products?q=${encodeURIComponent(q)}` : "/products");
-            }}
-          >
-            <input
-              name="q"
-              type="search"
-              aria-label="Search the store"
-              placeholder="Enter products to search…"
-              maxLength={100}
-            />
-            <button aria-label="Search">
-              <Search size={20} />
-            </button>
-          </form>
+          <SearchBox />
           <div className="nav-actions">
             <Link href={user ? "/account" : "/login"} className="nav-action">
               {user ? <b className="avatar">{initial}</b> : <UserRound size={24} />}
@@ -136,67 +121,91 @@ export function Header({
             </Link>
           </div>
         </div>
-        <nav className="nav-row" aria-label="Main navigation">
-          <ul className="container">
-            <li>
-              <Link className={path === "/" ? "active" : ""} href="/">
-                Home
+        <nav className="catbar" aria-label="Main navigation">
+          <div className="container catbar-inner">
+            {/* Every category and sub-category in one panel. */}
+            <div className="has-menu catbar-all">
+              <Link className="catbar-all-button" href="/products">
+                <LayoutGrid size={18} /> Shop by category <ChevronDown size={16} />
               </Link>
-            </li>
-            {parents.slice(0, 7).map((c) => {
-              const subs = children(c.id);
-              return (
-                <li key={c.id} className={subs.length ? "has-menu" : ""}>
-                  <Link href={`/products?category=${c.slug}`}>
-                    {c.name} {subs.length > 0 && <ChevronDown size={14} />}
-                  </Link>
-                  {subs.length > 0 && (
-                    <div className="mega">
-                      <div>
-                        <h3>{c.name}</h3>
-                        {c.description && <p>{c.description}</p>}
-                        <ul>
-                          {subs.map((s) => (
-                            <li key={s.id}>
-                              <Link href={`/products?category=${s.slug}`}>{s.name}</Link>
-                            </li>
-                          ))}
-                          <li>
-                            <Link className="mega-all" href={`/products?category=${c.slug}`}>
-                              All {c.name.toLowerCase()}
-                            </Link>
-                          </li>
-                        </ul>
-                      </div>
-                      {c.image_url && (
-                        <Link className="mega-feature" href={`/products?category=${c.slug}`}>
-                          <img src={c.image_url} alt="" loading="lazy" />
-                          <span>Shop {c.name.toLowerCase()}</span>
-                        </Link>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-            <li>
-              <Link className={path === "/products" ? "active" : ""} href="/products">
-                All products
-              </Link>
-            </li>
-            {pages.map((p) => (
-              <li key={p.href}>
-                <Link className={path === p.href ? "active" : ""} href={p.href}>
-                  {p.name}
+              <div className="mega mega-directory">
+                {parents.map((c) => (
+                  <div key={c.id} className="mega-col">
+                    <Link className="mega-col-head" href={`/products?category=${c.slug}`}>
+                      {c.image_url && <img src={c.image_url} alt="" loading="lazy" />}
+                      <span>{c.name}</span>
+                    </Link>
+                    {children(c.id).map((sub) => (
+                      <Link key={sub.id} href={`/products?category=${sub.slug}`}>
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <ul className="catbar-links">
+              <li>
+                <Link className={path === "/" ? "active" : ""} href="/">
+                  Home
                 </Link>
               </li>
-            ))}
-            {user?.admin && (
+              {parents.slice(0, 6).map((c) => {
+                const subs = children(c.id);
+                return (
+                  <li key={c.id} className={subs.length ? "has-menu" : ""}>
+                    <Link href={`/products?category=${c.slug}`}>
+                      {c.name} {subs.length > 0 && <ChevronDown size={14} />}
+                    </Link>
+                    {subs.length > 0 && (
+                      <div className="mega">
+                        <div>
+                          <span className="eyebrow">Shop {c.name.toLowerCase()}</span>
+                          <h3>{c.description || c.name}</h3>
+                          <ul>
+                            {subs.map((sub) => (
+                              <li key={sub.id}>
+                                <Link href={`/products?category=${sub.slug}`}>
+                                  <ChevronRight size={15} /> {sub.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                          <Link className="mega-all" href={`/products?category=${c.slug}`}>
+                            View all {c.name.toLowerCase()} <ArrowRight size={15} />
+                          </Link>
+                        </div>
+                        {c.image_url && (
+                          <Link className="mega-feature" href={`/products?category=${c.slug}`}>
+                            <img src={c.image_url} alt="" loading="lazy" />
+                            <span>{c.name}</span>
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
               <li>
-                <Link href="/admin">Admin</Link>
+                <Link className="catbar-new" href="/products?sort=newest">
+                  <Sparkles size={15} /> New in
+                </Link>
               </li>
-            )}
-          </ul>
+            </ul>
+            <div className="catbar-extra">
+              <Link className={path === "/track" ? "active" : ""} href="/track">
+                <PackageSearch size={17} /> <span>Track order</span>
+              </Link>
+              <Link className={path === "/faq" ? "active" : ""} href="/faq">
+                <CircleHelp size={17} /> <span>Help</span>
+              </Link>
+              {user?.admin && (
+                <Link href="/admin">
+                  <ShieldCheck size={17} /> <span>Admin</span>
+                </Link>
+              )}
+            </div>
+          </div>
         </nav>
       </header>
       {open && (

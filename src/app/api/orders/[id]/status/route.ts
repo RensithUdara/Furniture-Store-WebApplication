@@ -27,7 +27,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         if (tracking_number || courier)
           throw new HttpError(
             503,
-            "Tracking needs a database update (supabase/migrations/008_tracking.sql). Clear both fields to ship without it.",
+            "Tracking details cannot be saved yet. Clear both fields to ship without them.",
           );
       } else if (trackingError) dbError(trackingError);
     }
