@@ -5,7 +5,7 @@ import { getOrder, getPaymentEvents } from "@/services/orders";
 import { OrderDetail } from "@/components/order-detail";
 export const metadata = { title: "Manage order" };
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("orders"))) return null;
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const order = await getOrder(id);

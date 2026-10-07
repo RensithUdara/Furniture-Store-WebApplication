@@ -3,7 +3,7 @@ import { guardAdminPage } from "@/lib/auth";
 import { OrderBrowser } from "@/components/admin/order-browser";
 export const metadata = { title: "Manage orders" };
 export default async function Orders() {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("orders"))) return null;
   const orders = await getOrders(true);
   return (
     <>

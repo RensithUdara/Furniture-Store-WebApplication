@@ -3,7 +3,7 @@ import { getProducts } from "@/services/catalog";
 import { InventoryTable } from "@/components/admin/inventory-table";
 export const metadata = { title: "Manage inventory" };
 export default async function Inventory() {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("inventory"))) return null;
   return (
     <>
       <div className="admin-heading">
