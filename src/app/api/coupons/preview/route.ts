@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { apiError, checkOrigin, dbError, HttpError, readJson } from "@/lib/http";
+import { rateLimit } from "@/lib/rate-limit";
 const body = z.object({
   code: z.string().trim().min(3).max(30),
   items: z
@@ -15,7 +16,9 @@ const body = z.object({
 export async function POST(request: Request) {
   try {
     checkOrigin(request);
-    await requireUser();
+    const user = await requireUser();
+    // Signed-in users only, so the limit follows the account and cannot be dodged by changing address.
+    await rateLimit("coupon-user", user.id, 12, 600);
     const { code, items } = body.parse(await readJson(request));
     const db = await supabase();
     const { data: variants, error } = await db

@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { checkoutSchema } from "@/lib/validation";
 import { apiError, checkOrigin, dbError, HttpError, readJson } from "@/lib/http";
-import { getOrders } from "@/services/orders";
+import { expireUnpaidOrders, getOrders } from "@/services/orders";
 import { payhere, whatsappNumber } from "@/lib/config";
 export async function GET() {
   try {
@@ -23,6 +23,8 @@ export async function POST(request: Request) {
       throw new HttpError(503, "Online payment is not yet available. Please choose WhatsApp.");
     if (payment_method === "WHATSAPP" && !/^[1-9]\d{7,14}$/.test(whatsappNumber()))
       throw new HttpError(503, "WhatsApp ordering is not yet configured.");
+    // Free any stock still held by abandoned online orders before reserving for this one.
+    await expireUnpaidOrders();
     const db = await supabase();
     const { data, error } = await db.rpc("create_order", {
       p_customer: customer,

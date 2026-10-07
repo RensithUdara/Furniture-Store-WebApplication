@@ -3,6 +3,7 @@ import { serviceClient } from "@/lib/supabase/server";
 import { trackSchema } from "@/lib/validation";
 import { apiError, checkOrigin, HttpError, readJson } from "@/lib/http";
 import { serviceKey } from "@/lib/config";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 
 const digits = (value: string) => value.replace(/\D/g, "").slice(-9);
@@ -15,7 +16,10 @@ export async function POST(request: Request) {
   try {
     checkOrigin(request);
     if (!serviceKey()) throw new HttpError(503, "Order tracking is not available right now.");
+    await rateLimit("track-ip", clientIp(request), 12, 600);
     const { order_number, contact } = trackSchema.parse(await readJson(request));
+    // Per order number as well: guessing the contact detail for one known order is the real risk.
+    await rateLimit("track-order", order_number.toUpperCase(), 6, 600);
     const db = serviceClient();
     const { data: order } = await db
       .from("orders")
