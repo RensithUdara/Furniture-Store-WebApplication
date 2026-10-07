@@ -531,52 +531,6 @@ textarea {
 }
 
 /* Footer */
-.footer {
-  padding: 64px 0 0;
-  background: var(--sand);
-  margin-top: 40px;
-}
-.footer-grid {
-  display: grid;
-  grid-template-columns: 1.6fr repeat(3, 1fr);
-  gap: 48px;
-  padding-bottom: 48px;
-}
-.footer p {
-  font-size: 14px;
-  margin: 16px 0 20px;
-  max-width: 300px;
-}
-.footer h3 {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin: 6px 0 16px;
-}
-.footer-grid > div > a:not(.wordmark) {
-  display: table;
-  font-size: 14px;
-  margin-bottom: 10px;
-  color: var(--muted);
-}
-.footer-grid > div > a:not(.wordmark):hover {
-  color: var(--accent);
-}
-.footer-bottom {
-  border-top: 1px solid var(--sand-deep);
-  padding-top: 20px;
-  padding-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  color: var(--muted);
-  font-size: 13px;
-}
-.footer-bottom a:hover {
-  color: var(--accent);
-}
 
 /* Pages */
 .page-space {
@@ -2280,13 +2234,6 @@ td .text-link {
   .reason-grid {
     grid-template-columns: 1fr 1fr;
   }
-  .footer-grid {
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 36px;
-  }
-  .footer-brand {
-    grid-column: 1/-1;
-  }
   .order-details,
   .account-layout,
   .dashboard-grid {
@@ -2391,10 +2338,6 @@ td .text-link {
   }
   .closing-cta {
     margin: 56px 0;
-  }
-  .footer-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 30px 20px;
   }
   .page-space {
     padding-top: 28px;
@@ -2546,9 +2489,6 @@ td .text-link {
 @media (max-width: 420px) {
   .container {
     width: calc(100% - 32px);
-  }
-  .footer-grid {
-    grid-template-columns: 1fr 1fr;
   }
   .cart-bottom {
     flex-direction: column;
