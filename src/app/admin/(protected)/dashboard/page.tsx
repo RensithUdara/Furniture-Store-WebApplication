@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, Armchair, Banknote, ClipboardList, Clock, Plus } from "lucide-react";
 import { guardAdminPage, requirePermission } from "@/lib/auth";
+import { can } from "@/lib/permissions";
 import { getProducts } from "@/services/catalog";
 import { getOrders } from "@/services/orders";
 import { getSettings } from "@/services/settings";
@@ -25,6 +26,18 @@ export default async function Dashboard() {
     settings?.points_per_100 == null && "006_rewards.sql",
     user.profile?.staff_role_id === undefined && "007_staff.sql",
   ].filter((f) => typeof f === "string");
+  const firstName = String(user.profile?.name || "").split(" ")[0];
+  const today = new Date().toLocaleDateString("en-GB", {
+    timeZone: "Asia/Colombo",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const methods = [
+    ["PAYHERE", "PayHere"],
+    ["COD", "Cash"],
+    ["WHATSAPP", "WhatsApp"],
+  ];
   const low = products
     .filter((p) => p.is_active)
     .flatMap((p) => p.product_variants.filter((v) => v.is_active).map((v) => ({ p, v })))
@@ -64,13 +77,22 @@ export default async function Dashboard() {
     <>
       <div className="admin-heading">
         <div>
-          <span className="eyebrow">Overview</span>
-          <h1>Dashboard</h1>
+          <span className="eyebrow">{today}</span>
+          <h1>Welcome back{firstName ? `, ${firstName}` : ""}</h1>
           <p>Sales, orders, and stock at a glance.</p>
         </div>
-        <Link className="button" href="/admin/products/new">
-          <Plus size={16} /> Add product
-        </Link>
+        <div className="admin-actions">
+          {can(user.profile, "orders") && (
+            <Link className="button button-outline" href="/admin/orders">
+              <ClipboardList size={16} /> Review orders
+            </Link>
+          )}
+          {can(user.profile, "products") && (
+            <Link className="button" href="/admin/products/new">
+              <Plus size={16} /> Add product
+            </Link>
+          )}
+        </div>
       </div>
       {admin && pendingMigrations.length > 0 && (
         <div className="info-message">
@@ -90,8 +112,8 @@ export default async function Dashboard() {
         </div>
       )}
       <div className="stat-grid">
-        {stats.map(({ name, value, note, icon: Icon }) => (
-          <div className="stat-card" key={name}>
+        {stats.map(({ name, value, note, icon: Icon }, i) => (
+          <div className={`stat-card tone-${i + 1}`} key={name}>
             <span className="stat-icon">
               <Icon size={18} />
             </span>
@@ -123,6 +145,29 @@ export default async function Dashboard() {
               );
             })}
           </ul>
+        </section>
+        <section className="panel">
+          <div className="admin-section-title">
+            <h2>How customers pay</h2>
+          </div>
+          <ul className="bar-list">
+            {methods.map(([key, name]) => {
+              const n = live.filter((o) => o.payment_method === key).length;
+              return (
+                <li key={key}>
+                  <span>{name}</span>
+                  <div>
+                    <i
+                      className={`method-${key.toLowerCase()}`}
+                      style={{ width: `${live.length ? (n / live.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <b>{n}</b>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="muted small-print">Non-cancelled orders, by payment method.</p>
         </section>
         <section className="panel">
           <div className="admin-section-title">
