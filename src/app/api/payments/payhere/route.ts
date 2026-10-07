@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { getOrder } from "@/services/orders";
+import { getOrderByAccess } from "@/services/orders";
 import { checkoutHash } from "@/lib/payments/payhere";
 import { apiError, checkOrigin, HttpError, readJson } from "@/lib/http";
 import { z } from "zod";
@@ -8,10 +8,13 @@ import { appUrl, payhere } from "@/lib/config";
 export async function POST(request: Request) {
   try {
     checkOrigin(request);
-    const user = await requireUser();
-    const { id } = z.object({ id: z.uuid() }).parse(await readJson(request));
-    const order = await getOrder(id);
-    if (!order || order.user_id !== user.id) throw new HttpError(404, "Order not found.");
+    const { id, token } = z
+      .object({ id: z.uuid(), token: z.uuid().optional() })
+      .parse(await readJson(request));
+    // A guest pays with the order's private token; a customer must be signed in and own it.
+    const user = token ? null : await requireUser();
+    const order = await getOrderByAccess(id, token);
+    if (!order || (user && order.user_id !== user.id)) throw new HttpError(404, "Order not found.");
     if (
       order.payment_method !== "PAYHERE" ||
       order.order_status === "CANCELLED" ||
@@ -27,8 +30,8 @@ export async function POST(request: Request) {
       action,
       fields: {
         merchant_id: merchant,
-        return_url: `${base}/orders/${id}?payment=returned`,
-        cancel_url: `${base}/orders/${id}?payment=cancelled`,
+        return_url: `${base}${token ? `/orders/guest/${token}` : `/orders/${id}`}?payment=returned`,
+        cancel_url: `${base}${token ? `/orders/guest/${token}` : `/orders/${id}`}?payment=cancelled`,
         notify_url: `${base}/api/payments/notification`,
         first_name: first,
         last_name: last.join(" ") || first,
