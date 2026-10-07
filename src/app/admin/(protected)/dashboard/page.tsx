@@ -3,7 +3,7 @@ import { AlertTriangle, Armchair, Banknote, ClipboardList, Clock, Plus } from "l
 import { guardAdminPage, requirePermission } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { getProducts } from "@/services/catalog";
-import { getOrders } from "@/services/orders";
+import { getOrders, orderEventsReady } from "@/services/orders";
 import { getSettings } from "@/services/settings";
 import { money, label, stockLabel, stockTone } from "@/lib/format";
 import { OrderTable } from "@/components/order-table";
@@ -26,6 +26,7 @@ export default async function Dashboard() {
     settings?.points_per_100 == null && "006_rewards.sql",
     user.profile?.staff_role_id === undefined && "007_staff.sql",
     orders.length > 0 && orders[0].tracking_number === undefined && "008_tracking.sql",
+    !(await orderEventsReady()) && "009_order_events.sql",
   ].filter((f) => typeof f === "string");
   const firstName = String(user.profile?.name || "").split(" ")[0];
   const today = new Date().toLocaleDateString("en-GB", {
