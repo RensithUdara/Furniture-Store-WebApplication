@@ -18,7 +18,7 @@ const links = [
   { href: "/account/wishlist", name: "Wishlist", icon: Heart },
   { href: "/account/rewards", name: "Reward points", icon: Gift },
   { href: "/account/profile", name: "Profile", icon: UserRound },
-  { href: "/account/address", name: "Saved address", icon: MapPin },
+  { href: "/account/address", name: "Saved addresses", icon: MapPin },
   { href: "/account/security", name: "Security", icon: LockKeyhole },
 ];
 export function AccountNav({

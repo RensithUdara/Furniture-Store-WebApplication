@@ -87,7 +87,9 @@ export function AddressBook({ addresses, zones }: { addresses: Address[]; zones:
               {!a.is_default && (
                 <button
                   disabled={busy}
-                  onClick={() => run(() => api("/api/addresses", "POST", { ...a, is_default: true }))}
+                  onClick={() =>
+                    run(() => api("/api/addresses", "POST", { ...a, is_default: true }))
+                  }
                 >
                   <Star size={14} /> Make default
                 </button>
@@ -137,7 +139,13 @@ export function AddressBook({ addresses, zones }: { addresses: Address[]; zones:
             </label>
             <label className="field">
               Address line 1
-              <input name="line1" defaultValue={current?.line1} minLength={5} maxLength={200} required />
+              <input
+                name="line1"
+                defaultValue={current?.line1}
+                minLength={5}
+                maxLength={200}
+                required
+              />
             </label>
             <label className="field">
               Address line 2 (optional)
@@ -188,7 +196,11 @@ export function AddressBook({ addresses, zones }: { addresses: Address[]; zones:
               <button className="button" disabled={busy}>
                 {busy ? "Saving…" : "Save address"}
               </button>
-              <button type="button" className="button button-outline" onClick={() => setEditing(null)}>
+              <button
+                type="button"
+                className="button button-outline"
+                onClick={() => setEditing(null)}
+              >
                 Cancel
               </button>
             </div>
@@ -201,7 +213,13 @@ export function AddressBook({ addresses, zones }: { addresses: Address[]; zones:
 
 /* ---------- Back-in-stock requests ---------- */
 // `admin` shows who is waiting (for the inventory screen); otherwise the customer's own list.
-export function StockAlertList({ alerts, admin = false }: { alerts: StockAlert[]; admin?: boolean }) {
+export function StockAlertList({
+  alerts,
+  admin = false,
+}: {
+  alerts: StockAlert[];
+  admin?: boolean;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState("");
   if (!alerts.length) return null;
@@ -242,7 +260,9 @@ export function StockAlertList({ alerts, admin = false }: { alerts: StockAlert[]
                 </td>
                 {admin && (
                   <td>
-                    <a href={`mailto:${a.email}?subject=${encodeURIComponent(`${v?.products.name || "Your item"} is back in stock`)}`}>
+                    <a
+                      href={`mailto:${a.email}?subject=${encodeURIComponent(`${v?.products.name || "Your item"} is back in stock`)}`}
+                    >
                       {a.email}
                     </a>
                   </td>
@@ -324,7 +344,11 @@ export function ReturnPanel({
   }
   async function decide(status: "APPROVED" | "REJECTED" | "REFUNDED", form: HTMLFormElement) {
     const note = String(new FormData(form).get("note") || "");
-    const words = { APPROVED: "Approve this return?", REJECTED: "Reject this return?", REFUNDED: "Mark this refund as paid?" };
+    const words = {
+      APPROVED: "Approve this return?",
+      REJECTED: "Reject this return?",
+      REFUNDED: "Mark this refund as paid?",
+    };
     if (
       await confirm({
         title: words[status],
@@ -332,7 +356,8 @@ export function ReturnPanel({
           status === "REFUNDED"
             ? "Only do this after the money has actually been sent. The website does not send refunds itself."
             : "The customer will see your decision and note on their order page. It cannot be changed afterwards.",
-        confirmLabel: status === "APPROVED" ? "Approve" : status === "REJECTED" ? "Reject" : "Mark refunded",
+        confirmLabel:
+          status === "APPROVED" ? "Approve" : status === "REJECTED" ? "Reject" : "Mark refunded",
         tone: status === "REJECTED" ? "danger" : "default",
       })
     )
@@ -366,15 +391,27 @@ export function ReturnPanel({
               <div className="order-actions">
                 {request.status === "REQUESTED" ? (
                   <>
-                    <button className="button" disabled={busy} onClick={(e) => decide("APPROVED", e.currentTarget.form!)}>
+                    <button
+                      className="button"
+                      disabled={busy}
+                      onClick={(e) => decide("APPROVED", e.currentTarget.form!)}
+                    >
                       Approve return
                     </button>
-                    <button className="button button-outline" disabled={busy} onClick={(e) => decide("REJECTED", e.currentTarget.form!)}>
+                    <button
+                      className="button button-outline"
+                      disabled={busy}
+                      onClick={(e) => decide("REJECTED", e.currentTarget.form!)}
+                    >
                       Reject
                     </button>
                   </>
                 ) : (
-                  <button className="button" disabled={busy} onClick={(e) => decide("REFUNDED", e.currentTarget.form!)}>
+                  <button
+                    className="button"
+                    disabled={busy}
+                    onClick={(e) => decide("REFUNDED", e.currentTarget.form!)}
+                  >
                     Mark refund paid
                   </button>
                 )}
@@ -432,7 +469,11 @@ export function ReturnPanel({
           </label>
           <label className="field">
             What happened?
-            <textarea name="details" maxLength={2000} placeholder="Describe the problem. Which item, and what is wrong with it?" />
+            <textarea
+              name="details"
+              maxLength={2000}
+              placeholder="Describe the problem. Which item, and what is wrong with it?"
+            />
           </label>
           {error && (
             <p className="error-message" role="alert">
