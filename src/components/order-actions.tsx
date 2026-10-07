@@ -5,7 +5,16 @@ import { Truck } from "lucide-react";
 import { api, startPayment } from "@/lib/client-api";
 import { Modal, useConfirm } from "@/components/dialogs";
 import type { Order } from "@/types";
-export function OrderActions({ order: o, admin = false }: { order: Order; admin?: boolean }) {
+export function OrderActions({
+  order: o,
+  admin = false,
+  guestToken,
+}: {
+  order: Order;
+  admin?: boolean;
+  // A guest's private order token, sent in place of a sign-in.
+  guestToken?: string;
+}) {
   const confirm = useConfirm();
   const router = useRouter(),
     [busy, setBusy] = useState(false),
@@ -97,7 +106,7 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
             <button
               className="button"
               disabled={busy}
-              onClick={() => run(() => startPayment(o.id))}
+              onClick={() => run(() => startPayment(o.id, guestToken))}
             >
               Continue to PayHere
             </button>
@@ -108,7 +117,9 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
             disabled={busy}
             onClick={() =>
               run(async () => {
-                const { url } = await api<{ url: string }>(`/api/orders/${o.id}/whatsapp`);
+                const { url } = await api<{ url: string }>(
+                  `/api/orders/${o.id}/whatsapp${guestToken ? `?token=${guestToken}` : ""}`,
+                );
                 window.location.assign(url);
               })
             }
@@ -135,6 +146,8 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
         )}
         {!closed &&
           o.order_status !== "SHIPPED" &&
+          // Cancelling needs a signed-in owner or staff; a guest contacts the store instead.
+          !guestToken &&
           (admin || (o.order_status === "PENDING" && o.payment_status !== "PAID")) && (
             <button
               className="button button-outline"

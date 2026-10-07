@@ -1,11 +1,20 @@
 import Link from "next/link";
-import { ArrowLeft, Download, Truck, Mail, MessageCircle, Phone } from "lucide-react";
-import { money, dateTime, label, deliveryLabel } from "@/lib/format";
+import {
+  ArrowLeft,
+  CalendarClock,
+  Download,
+  Truck,
+  Mail,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
+import { money, dateTime, label, deliveryLabel, shortDate } from "@/lib/format";
 import { whatsappMessage } from "@/lib/whatsapp";
 import { payhere } from "@/lib/config";
 import { Badge, Method } from "@/components/order-table";
 import { OrderActions } from "@/components/order-actions";
-import type { Order, OrderEvent, PaymentEvent, StoreSettings } from "@/types";
+import type { Order, OrderEvent, PaymentEvent, ReturnRequest, StoreSettings } from "@/types";
+import { ReturnPanel } from "@/components/account-extras";
 import { OrderProgress, TrackingHistory } from "@/components/order-tracking";
 const payhereStatus: Record<number, string> = {
   2: "Success",
@@ -22,6 +31,8 @@ export function OrderDetail({
   payments = [],
   settings = null,
   events = [],
+  guestToken,
+  returnRequest = null,
 }: {
   order: Order;
   admin?: boolean;
@@ -30,9 +41,20 @@ export function OrderDetail({
   payments?: PaymentEvent[];
   settings?: StoreSettings | null;
   events?: OrderEvent[];
+  // Set on a guest's order page: it replaces the sign-in for payment and the bill.
+  guestToken?: string;
+  returnRequest?: ReturnRequest | null;
 }) {
   const local = o.customer_phone.replace(/^\+94|^0/, "");
   const pickup = o.fulfillment_method === "PICKUP";
+  const windowDays = settings?.return_window_days;
+  // The delivery window promised at checkout, until the order has arrived or been cancelled.
+  const estimate =
+    o.estimated_from && o.estimated_to && !["DELIVERED", "CANCELLED"].includes(o.order_status)
+      ? o.estimated_from === o.estimated_to
+        ? shortDate(o.estimated_from)
+        : `${shortDate(o.estimated_from)} – ${shortDate(o.estimated_to)}`
+      : "";
   // When an unpaid online order will be cancelled, if that is switched on.
   const expiry = settings?.unpaid_expiry_minutes;
   const deadline =
@@ -45,8 +67,11 @@ export function OrderDetail({
       : null;
   return (
     <>
-      <Link className="back-link" href={admin ? "/admin/orders" : "/account/orders"}>
-        <ArrowLeft size={15} /> All orders
+      <Link
+        className="back-link"
+        href={admin ? "/admin/orders" : guestToken ? "/products" : "/account/orders"}
+      >
+        <ArrowLeft size={15} /> {guestToken ? "Continue shopping" : "All orders"}
       </Link>
       <div className="order-topline">
         <div>
@@ -62,7 +87,7 @@ export function OrderDetail({
           {/* A file download, not a page: the download attribute keeps the loading indicator out of it. */}
           <a
             className="button button-outline button-small"
-            href={`/api/orders/${o.id}/invoice`}
+            href={`/api/orders/${o.id}/invoice${guestToken ? `?token=${guestToken}` : ""}`}
             download
           >
             <Download size={15} /> Download bill
@@ -91,6 +116,14 @@ export function OrderDetail({
         <div className="info-message">
           <strong>Complete your payment by {dateTime(deadline)}.</strong> After that this order is
           cancelled automatically and the items go back on sale.
+        </div>
+      )}
+      {estimate && (
+        <div className="estimate-note">
+          <CalendarClock size={18} />
+          <span>
+            Estimated delivery to {o.district}: <strong>{estimate}</strong>
+          </span>
         </div>
       )}
       {o.order_status === "CANCELLED" ? (
@@ -161,8 +194,17 @@ export function OrderDetail({
               </tbody>
             </table>
           </div>
-          <OrderActions order={o} admin={admin} />
+          <OrderActions order={o} admin={admin} guestToken={guestToken} />
           <TrackingHistory events={events} pickup={pickup} />
+          {windowDays !== undefined && (
+            <ReturnPanel
+              orderId={o.id}
+              request={returnRequest}
+              admin={admin}
+              windowDays={windowDays}
+              canRequest={!guestToken && o.order_status === "DELIVERED" && windowDays > 0}
+            />
+          )}
           {o.payment_method === "WHATSAPP" && (
             <details className="message-preview">
               <summary>
@@ -218,6 +260,12 @@ export function OrderDetail({
               <span>{pickup ? "Store pickup" : "Delivery"}</span>
               <span>{pickup ? "Free" : deliveryLabel(Number(o.delivery_fee))}</span>
             </div>
+            {Number(o.bundle_discount) > 0 && (
+              <div className="summary-line discount">
+                <span>Set saving ({o.bundle_names})</span>
+                <span>− {money(Number(o.bundle_discount))}</span>
+              </div>
+            )}
             {Number(o.discount_amount) > 0 && (
               <div className="summary-line discount">
                 <span>Coupon {o.coupon_code}</span>
