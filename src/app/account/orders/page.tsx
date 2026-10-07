@@ -1,8 +1,9 @@
+import { PRIVATE } from "@/lib/seo";
 import { accountUser } from "@/lib/account";
 import { getOrders } from "@/services/orders";
 import { OrderHistory } from "@/components/order-history";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "My orders" };
+export const metadata = { title: "My orders", robots: PRIVATE };
 export default async function AccountOrders() {
   await accountUser("/account/orders");
   return (

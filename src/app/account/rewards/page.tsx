@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import { Gift, ShoppingBag, Sparkles } from "lucide-react";
 import { accountUser } from "@/lib/account";
@@ -5,7 +6,7 @@ import { getLedger } from "@/services/rewards";
 import { getSettings } from "@/services/settings";
 import { dateOnly, money } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Reward points" };
+export const metadata = { title: "Reward points", robots: PRIVATE };
 const reasons: Record<string, string> = {
   EARNED: "Earned from an order",
   REDEEMED: "Used at checkout",

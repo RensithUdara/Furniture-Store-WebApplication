@@ -1,9 +1,10 @@
+import { PRIVATE } from "@/lib/seo";
 import { accountUser } from "@/lib/account";
 import { AddressForm } from "@/components/account-forms";
 import { AddressBook } from "@/components/account-extras";
 import { getAddresses, getZones } from "@/services/shopping";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Saved addresses" };
+export const metadata = { title: "Saved addresses", robots: PRIVATE };
 export default async function AccountAddress() {
   const user = await accountUser("/account/address");
   const p = user.profile;
