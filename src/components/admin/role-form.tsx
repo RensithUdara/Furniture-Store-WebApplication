@@ -3,21 +3,32 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { api } from "@/lib/client-api";
+import { useConfirm } from "@/components/dialogs";
 import { AREAS } from "@/lib/permissions";
 import type { StaffRole } from "@/types";
-export function RoleForm({ role: r, members = 0 }: { role?: StaffRole; members?: number }) {
+export function RoleForm({
+  role: r,
+  members = 0,
+  onDone,
+}: {
+  role?: StaffRole;
+  members?: number;
+  onDone?: () => void;
+}) {
+  const confirm = useConfirm();
   const router = useRouter(),
     formRef = useRef<HTMLFormElement>(null);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false);
-  async function run(action: () => Promise<unknown>) {
+  async function run(action: () => Promise<unknown>, closeAfter = false) {
     setBusy(true);
     setError("");
     setSaved(false);
     try {
       await action();
       router.refresh();
+      if (closeAfter) onDone?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to save the role.");
     } finally {
@@ -36,6 +47,7 @@ export function RoleForm({ role: r, members = 0 }: { role?: StaffRole; members?:
       });
       setSaved(true);
       if (!r) formRef.current?.reset();
+      onDone?.();
     });
   }
   return (
@@ -94,7 +106,19 @@ export function RoleForm({ role: r, members = 0 }: { role?: StaffRole; members?:
               className="button button-outline"
               disabled={busy}
               title={members ? "People with this role will be left with no permissions" : undefined}
-              onClick={() => run(() => api("/api/staff/roles", "DELETE", { id: r.id }))}
+              onClick={async () => {
+                if (
+                  await confirm({
+                    title: `Delete the ${r.name} role?`,
+                    message: members
+                      ? `${members} ${members === 1 ? "person has" : "people have"} this role and will be left with no permissions until you give them another.`
+                      : "Nobody has this role at the moment.",
+                    confirmLabel: "Delete role",
+                    tone: "danger",
+                  })
+                )
+                  run(() => api("/api/staff/roles", "DELETE", { id: r.id }), true);
+              }}
             >
               <Trash2 size={15} /> Delete
             </button>

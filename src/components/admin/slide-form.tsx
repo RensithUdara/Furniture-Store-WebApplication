@@ -3,22 +3,25 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { api } from "@/lib/client-api";
+import { useConfirm } from "@/components/dialogs";
 import { ImageUpload } from "@/components/admin/upload";
 import type { PromoSlide } from "@/types";
-export function SlideForm({ slide: s }: { slide?: PromoSlide }) {
+export function SlideForm({ slide: s, onDone }: { slide?: PromoSlide; onDone?: () => void }) {
+  const confirm = useConfirm();
   const router = useRouter(),
     formRef = useRef<HTMLFormElement>(null);
   const [image, setImage] = useState(s?.image_url || ""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false);
-  async function run(action: () => Promise<unknown>) {
+  async function run(action: () => Promise<unknown>, closeAfter = false) {
     setBusy(true);
     setError("");
     setSaved(false);
     try {
       await action();
       router.refresh();
+      if (closeAfter) onDone?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to save the slide.");
     } finally {
@@ -44,6 +47,7 @@ export function SlideForm({ slide: s }: { slide?: PromoSlide }) {
         formRef.current?.reset();
         setImage("");
       }
+      onDone?.();
     });
   }
   return (
@@ -125,7 +129,17 @@ export function SlideForm({ slide: s }: { slide?: PromoSlide }) {
               type="button"
               className="button button-outline"
               disabled={busy}
-              onClick={() => run(() => api("/api/slides", "DELETE", { id: s.id }))}
+              onClick={async () => {
+                if (
+                  await confirm({
+                    title: `Delete this slide?`,
+                    message: "It will be removed from the home page carousel straight away.",
+                    confirmLabel: "Delete slide",
+                    tone: "danger",
+                  })
+                )
+                  run(() => api("/api/slides", "DELETE", { id: s.id }), true);
+              }}
             >
               <Trash2 size={15} /> Delete
             </button>

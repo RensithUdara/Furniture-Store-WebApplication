@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, startPayment } from "@/lib/client-api";
+import { useConfirm } from "@/components/dialogs";
 import type { Order } from "@/types";
 export function OrderActions({ order: o, admin = false }: { order: Order; admin?: boolean }) {
+  const confirm = useConfirm();
   const router = useRouter(),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -90,7 +92,20 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
             <button
               className="button"
               disabled={busy}
-              onClick={() => run(() => status(next[o.order_status]))}
+              onClick={async () => {
+                const stage =
+                  (pickup && pickupLabels[next[o.order_status]]) ||
+                  next[o.order_status].toLowerCase();
+                if (
+                  await confirm({
+                    title: `Mark this order as ${stage}?`,
+                    message:
+                      "The customer will see the new status. An order cannot be moved back to an earlier stage.",
+                    confirmLabel: `Mark ${stage}`,
+                  })
+                )
+                  run(() => status(next[o.order_status]));
+              }}
             >
               Mark{" "}
               {(pickup && pickupLabels[next[o.order_status]]) ||
@@ -103,7 +118,19 @@ export function OrderActions({ order: o, admin = false }: { order: Order; admin?
             <button
               className="button button-outline"
               disabled={busy}
-              onClick={() => run(() => status("CANCELLED"))}
+              onClick={async () => {
+                if (
+                  await confirm({
+                    title: "Cancel this order?",
+                    message:
+                      "The reserved stock goes back on sale, and any coupon or reward points used are returned. This cannot be undone.",
+                    confirmLabel: "Cancel order",
+                    cancelLabel: "Keep order",
+                    tone: "danger",
+                  })
+                )
+                  run(() => status("CANCELLED"));
+              }}
             >
               Cancel order
             </button>

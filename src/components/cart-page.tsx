@@ -11,10 +11,12 @@ import {
   Truck,
 } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
+import { useConfirm } from "@/components/dialogs";
 import { money, deliveryFee, deliveryLabel } from "@/lib/format";
 import type { StoreSettings } from "@/types";
 export function CartPage({ settings }: { settings: StoreSettings | null }) {
   const { items, ready, update, remove, clear, fulfil, setFulfil } = useCart();
+  const confirm = useConfirm();
   // Pickup needs the store hours added by migration 004; without them only delivery is offered.
   const canChoose = settings?.pickup_open_hour != null;
   const pickup = canChoose && fulfil === "PICKUP";
@@ -93,7 +95,20 @@ export function CartPage({ settings }: { settings: StoreSettings | null }) {
             <Link className="text-link" href="/products">
               <ArrowLeft size={15} /> Keep exploring
             </Link>
-            <button className="text-link" onClick={clear}>
+            <button
+              className="text-link"
+              onClick={async () => {
+                if (
+                  await confirm({
+                    title: "Empty your cart?",
+                    message: "Every item will be removed.",
+                    confirmLabel: "Empty cart",
+                    tone: "danger",
+                  })
+                )
+                  clear();
+              }}
+            >
               Empty bag
             </button>
           </div>

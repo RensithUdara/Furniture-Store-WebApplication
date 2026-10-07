@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { api } from "@/lib/client-api";
+import { useConfirm } from "@/components/dialogs";
 import { money } from "@/lib/format";
 import type { Coupon } from "@/types";
 // datetime-local works in the browser's own time zone; convert to and from stored UTC.
@@ -14,20 +15,22 @@ const toLocal = (iso?: string | null) => {
 const toIso = (value: FormDataEntryValue | null) =>
   value ? new Date(String(value)).toISOString() : null;
 const optional = (value: FormDataEntryValue | null) => (value ? Number(value) : null);
-export function CouponForm({ coupon: c }: { coupon?: Coupon }) {
+export function CouponForm({ coupon: c, onDone }: { coupon?: Coupon; onDone?: () => void }) {
+  const confirm = useConfirm();
   const router = useRouter(),
     formRef = useRef<HTMLFormElement>(null);
   const [type, setType] = useState(c?.discount_type || "PERCENT"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false);
-  async function run(action: () => Promise<unknown>) {
+  async function run(action: () => Promise<unknown>, closeAfter = false) {
     setBusy(true);
     setError("");
     setSaved(false);
     try {
       await action();
       router.refresh();
+      if (closeAfter) onDone?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to save the coupon.");
     } finally {
@@ -54,6 +57,7 @@ export function CouponForm({ coupon: c }: { coupon?: Coupon }) {
       });
       setSaved(true);
       if (!c) formRef.current?.reset();
+      onDone?.();
     });
   }
   return (
@@ -182,7 +186,18 @@ export function CouponForm({ coupon: c }: { coupon?: Coupon }) {
             type="button"
             className="button button-outline"
             disabled={busy}
-            onClick={() => run(() => api("/api/coupons", "DELETE", { id: c.id }))}
+            onClick={async () => {
+              if (
+                await confirm({
+                  title: `Delete coupon ${c.code}?`,
+                  message:
+                    "Customers will no longer be able to use this code. Orders that already used it keep their discount.",
+                  confirmLabel: "Delete coupon",
+                  tone: "danger",
+                })
+              )
+                run(() => api("/api/coupons", "DELETE", { id: c.id }), true);
+            }}
           >
             <Trash2 size={15} /> Delete
           </button>

@@ -1,6 +1,6 @@
 import { guardAdminPage } from "@/lib/auth";
 import { getCoupons } from "@/services/rewards";
-import { CouponForm } from "@/components/admin/coupon-form";
+import { CouponManager } from "@/components/admin/managers";
 export const metadata = { title: "Coupons" };
 export default async function Coupons() {
   if (!(await guardAdminPage("coupons"))) return null;
@@ -23,12 +23,7 @@ export default async function Coupons() {
           <code>supabase/migrations/006_rewards.sql</code> in the Supabase SQL editor.
         </div>
       ) : (
-        <div className="category-edit-grid">
-          <CouponForm />
-          {coupons.map((c) => (
-            <CouponForm key={c.id} coupon={c} />
-          ))}
-        </div>
+        <CouponManager coupons={coupons} />
       )}
     </>
   );

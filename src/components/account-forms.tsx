@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client-api";
+import { useConfirm } from "@/components/dialogs";
 import { addressSchema, emailSchema, passwordSchema, profileSchema } from "@/lib/validation";
 function useSubmit() {
   const [busy, setBusy] = useState(false),
@@ -165,6 +166,7 @@ export function ResetRequestForm({ configured }: { configured: boolean }) {
 type Address = { address_line1: string; address_line2: string; city: string; postal_code: string };
 export function AddressForm({ address }: { address: Address }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const { busy, error, done, run } = useSubmit();
   const save = (values: unknown) =>
     run(async () => {
@@ -236,9 +238,17 @@ export function AddressForm({ address }: { address: Address }) {
             type="button"
             className="button button-outline"
             disabled={busy}
-            onClick={() =>
-              save({ address_line1: "", address_line2: "", city: "", postal_code: "" })
-            }
+            onClick={async () => {
+              if (
+                await confirm({
+                  title: "Remove your saved address?",
+                  message: "Checkout will no longer fill it in for you.",
+                  confirmLabel: "Remove address",
+                  tone: "danger",
+                })
+              )
+                save({ address_line1: "", address_line2: "", city: "", postal_code: "" });
+            }}
           >
             Remove address
           </button>

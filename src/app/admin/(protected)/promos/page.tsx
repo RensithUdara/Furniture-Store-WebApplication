@@ -1,7 +1,7 @@
 import { guardAdminPage } from "@/lib/auth";
 import { getSlides } from "@/services/slides";
 import { getSettings } from "@/services/settings";
-import { SlideForm } from "@/components/admin/slide-form";
+import { SlideManager } from "@/components/admin/managers";
 export const metadata = { title: "Promo slides" };
 export default async function Promos() {
   if (!(await guardAdminPage("promos"))) return null;
@@ -18,12 +18,7 @@ export default async function Promos() {
         </div>
       </div>
       {migrated ? (
-        <div className="category-edit-grid">
-          <SlideForm />
-          {slides.map((s) => (
-            <SlideForm key={s.id} slide={s} />
-          ))}
-        </div>
+        <SlideManager slides={slides} />
       ) : (
         <div className="info-message">
           Promo slides need the latest database update. Run{" "}

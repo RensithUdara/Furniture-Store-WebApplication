@@ -2,15 +2,21 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client-api";
+import { useConfirm } from "@/components/dialogs";
+import { Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/admin/upload";
 import type { Category } from "@/types";
 export function CategoryForm({
   category: c,
   parents = [],
+  onDone,
 }: {
   category?: Category;
   parents?: Category[];
+  // Called after a successful save or delete, to close the popup the form sits in.
+  onDone?: () => void;
 }) {
+  const confirm = useConfirm();
   const router = useRouter(),
     formRef = useRef<HTMLFormElement>(null);
   const [image, setImage] = useState(c?.image_url || ""),
@@ -39,8 +45,31 @@ export function CategoryForm({
         setImage("");
       }
       router.refresh();
+      onDone?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to save category.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function remove() {
+    if (!c) return;
+    const ok = await confirm({
+      title: `Delete ${c.name}?`,
+      message:
+        "This removes the category for good. A category that still has products or sub-categories cannot be deleted; hide it instead.",
+      confirmLabel: "Delete category",
+      tone: "danger",
+    });
+    if (!ok) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api("/api/categories", "DELETE", { id: c.id });
+      router.refresh();
+      onDone?.();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to delete category.");
     } finally {
       setBusy(false);
     }
@@ -103,9 +132,21 @@ export function CategoryForm({
             Category saved.
           </p>
         )}
-        <button className="button" disabled={busy}>
-          {busy ? "Saving…" : c ? "Save category" : "Create category"}
-        </button>
+        <div className="order-actions">
+          <button className="button" disabled={busy}>
+            {busy ? "Saving…" : c ? "Save category" : "Create category"}
+          </button>
+          {c && (
+            <button
+              type="button"
+              className="button button-outline"
+              disabled={busy}
+              onClick={remove}
+            >
+              <Trash2 size={15} /> Delete
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );

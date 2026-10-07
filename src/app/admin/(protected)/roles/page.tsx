@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { guardAdminPage } from "@/lib/auth";
 import { getStaff, getStaffRoles } from "@/services/staff";
-import { RoleForm } from "@/components/admin/role-form";
+import { RoleManager } from "@/components/admin/managers";
 export const metadata = { title: "Roles and permissions" };
 export default async function Roles() {
   // No area given: this page is for full administrators only.
@@ -28,16 +28,7 @@ export default async function Roles() {
           in the Supabase SQL editor.
         </div>
       ) : (
-        <div className="category-edit-grid">
-          <RoleForm />
-          {roles.map((r) => (
-            <RoleForm
-              key={r.id}
-              role={r}
-              members={(staff || []).filter((m) => m.staff_role_id === r.id).length}
-            />
-          ))}
-        </div>
+        <RoleManager roles={roles} staff={staff || []} />
       )}
     </>
   );

@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Pencil, Search, Star } from "lucide-react";
 import { api } from "@/lib/client-api";
+import { useConfirm } from "@/components/dialogs";
 import { money, stockLabel, stockTone } from "@/lib/format";
 import { totalStock } from "@/lib/catalog-filter";
 import type { Product } from "@/types";
 export function ProductTable({ products }: { products: Product[] }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [query, setQuery] = useState(""),
     [show, setShow] = useState("all"),
     [busy, setBusy] = useState(""),
@@ -21,6 +23,22 @@ export function ProductTable({ products }: { products: Product[] }) {
       (show === "all" || (show === "active") === p.is_active),
   );
   async function toggle(p: Product) {
+    const ok = await confirm(
+      p.is_active
+        ? {
+            title: `Hide ${p.name}?`,
+            message:
+              "Customers will no longer see or be able to buy it. Past orders are not affected, and you can show it again at any time.",
+            confirmLabel: "Hide product",
+            tone: "danger",
+          }
+        : {
+            title: `Show ${p.name} in the store?`,
+            message: "Customers will be able to see and buy it straight away.",
+            confirmLabel: "Show product",
+          },
+    );
+    if (!ok) return;
     setBusy(p.id);
     setError("");
     try {
