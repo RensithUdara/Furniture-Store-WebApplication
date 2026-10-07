@@ -21,9 +21,9 @@ export async function POST(request: Request) {
     const input = bundleSchema.parse(await readJson(request));
     const db = await supabase();
     const { data, error } = await db.rpc("save_bundle", { p: input });
-    if (error?.code === "PGRST202")
-      throw new HttpError(503, "Room sets need migration 012_catalogue.sql.");
-    if (error?.code === "23503") throw new HttpError(400, "One of those products no longer exists.");
+    if (error?.code === "PGRST202") throw new HttpError(503, "Room sets are not available yet.");
+    if (error?.code === "23503")
+      throw new HttpError(400, "One of those products no longer exists.");
     if (error) dbError(error);
     return NextResponse.json({ id: data }, { status: 201 });
   } catch (e) {
