@@ -13,6 +13,7 @@ import { getCategories } from "@/services/catalog";
 import { getSettings } from "@/services/settings";
 import { getWishlistIds } from "@/services/rewards";
 import { WishlistProvider } from "@/components/wishlist-provider";
+import "./reset.css";
 import "./globals.css";
 import "./theme.css";
 // The header shows the signed-in user, so no page may be prerendered with a stale session.
