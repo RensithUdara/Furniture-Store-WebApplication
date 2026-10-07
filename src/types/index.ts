@@ -17,6 +17,8 @@ export type Variant = {
   price: number;
   stock_quantity: number;
   is_active: boolean;
+  // The "was" price, when this finish is on sale (migration 011).
+  compare_at_price?: number | null;
 };
 export type ProductImage = { id: string; image_url: string; sort_order: number };
 export type Product = {
@@ -35,6 +37,7 @@ export type Product = {
   categories: Category;
   product_images: ProductImage[];
   product_variants: Variant[];
+  rating?: { avg: number; count: number };
 };
 export type CartItem = {
   variant_id: string;
@@ -64,7 +67,12 @@ export type OrderItem = {
 export type Order = {
   id: string;
   order_number: string;
-  user_id: string;
+  // Null for a guest order, which is reached with guest_token instead of a sign-in.
+  user_id: string | null;
+  guest_token?: string;
+  district?: string;
+  estimated_from?: string | null;
+  estimated_to?: string | null;
   customer_name: string;
   customer_email: string;
   customer_phone: string;
@@ -113,6 +121,8 @@ export type StoreSettings = {
   point_value?: number;
   // Present once migration 010 has been run. 0 means unpaid online orders are never cancelled.
   unpaid_expiry_minutes?: number;
+  // Present once migration 011 has been run.
+  return_window_days?: number;
 };
 export type PromoSlide = {
   id: string;
@@ -163,3 +173,53 @@ export type StaffMember = {
 };
 // One entry in an order's tracking history (migration 009).
 export type OrderEvent = { id: number; event: string; detail: string; created_at: string };
+export type Review = {
+  id: string;
+  product_id: string;
+  user_id: string;
+  author: string;
+  rating: number;
+  title: string;
+  body: string;
+  created_at: string;
+};
+export type Address = {
+  id: string;
+  label: string;
+  line1: string;
+  line2: string;
+  city: string;
+  district: string;
+  postal_code: string;
+  is_default: boolean;
+};
+export type DeliveryZone = {
+  district: string;
+  min_days: number;
+  max_days: number;
+  is_active: boolean;
+};
+export type StockAlert = {
+  id: string;
+  variant_id: string;
+  email: string;
+  created_at: string;
+  ready_at: string | null;
+  product_variants: {
+    color: string;
+    material: string;
+    sku: string;
+    stock_quantity: number;
+    products: { name: string; slug: string };
+  } | null;
+};
+export type ReturnRequest = {
+  id: string;
+  order_id: string;
+  reason: "DAMAGED" | "FAULTY" | "WRONG_ITEM" | "CHANGED_MIND" | "OTHER";
+  details: string;
+  status: "REQUESTED" | "APPROVED" | "REJECTED" | "REFUNDED";
+  admin_note: string;
+  created_at: string;
+  updated_at: string;
+};

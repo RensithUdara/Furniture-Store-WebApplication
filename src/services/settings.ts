@@ -24,6 +24,7 @@ export async function getSettings(): Promise<StoreSettings | null> {
         points_per_100: data.points_per_100,
         point_value: data.point_value == null ? undefined : Number(data.point_value),
         unpaid_expiry_minutes: data.unpaid_expiry_minutes ?? undefined,
+        return_window_days: data.return_window_days ?? undefined,
       }
     : null;
 }

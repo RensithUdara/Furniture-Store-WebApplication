@@ -1,20 +1,16 @@
 import "server-only";
 import { isConfigured, serviceKey } from "@/lib/config";
 import { serviceClient, supabase } from "@/lib/supabase/server";
-import type {
-  Address,
-  DeliveryZone,
-  Order,
-  ReturnRequest,
-  Review,
-  StockAlert,
-} from "@/types";
+import type { Address, DeliveryZone, Order, ReturnRequest, Review, StockAlert } from "@/types";
 
 // Readers for the features added by migration 011. Until it has been run the tables and
 // functions do not exist; each reader then returns an empty result (or null where the caller
 // needs to tell "not available" apart from "none yet"), and the matching UI stays hidden.
 const missing = (error: { code?: string } | null) =>
-  Boolean(error && ["PGRST205", "PGRST202", "PGRST200", "42P01", "42703", "42883"].includes(error.code || ""));
+  Boolean(
+    error &&
+    ["PGRST205", "PGRST202", "PGRST200", "42P01", "42703", "42883"].includes(error.code || ""),
+  );
 
 // Average rating and review count per product id.
 export async function getRatings(): Promise<Record<string, { avg: number; count: number }>> {
