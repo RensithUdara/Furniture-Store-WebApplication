@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { after } from "next/server";
+import { sendCartReminders } from "@/services/marketing";
+import { FlashBanner } from "@/components/marketing";
+import { absolute, jsonLd, SITE_NAME, siteUrl } from "@/lib/seo";
 import {
   ArrowRight,
   Banknote,
@@ -50,12 +54,42 @@ export default async function Home() {
     getSlides(),
   ]);
   const sets = (await getShopBundles(products)).slice(0, 2);
+  // The running flash sale with the biggest discount, if there is one.
+  const flash = products
+    .flatMap((p) => (p.flash ? [p.flash] : []))
+    .sort((a, b) => b.percent - a.percent)[0];
+  // Abandoned-bag reminders are sent in the background as the store is visited.
+  after(() => sendCartReminders());
   const parents = categories.filter((c) => !c.parent_id);
   const featured = products.filter((p) => p.is_featured).slice(0, 4);
   const arrivals = products.filter((p) => !featured.includes(p)).slice(0, 8);
   return (
     <>
       <h1 className="sr-only">Forma & Co. furniture store</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd({
+            "@context": "https://schema.org",
+            "@type": "FurnitureStore",
+            name: SITE_NAME,
+            url: siteUrl(),
+            image: absolute("/images/hero.jpg"),
+            ...(settings?.store_phone
+              ? { telephone: settings.store_phone.split(/[,/]/)[0].trim() }
+              : {}),
+            ...(settings?.pickup_address
+              ? {
+                  address: {
+                    "@type": "PostalAddress",
+                    streetAddress: settings.pickup_address,
+                    addressCountry: "LK",
+                  },
+                }
+              : {}),
+          }),
+        }}
+      />
       {slides.length ? (
         <Carousel slides={slides} />
       ) : (
@@ -130,6 +164,7 @@ export default async function Home() {
           </div>
         </section>
       )}
+      {flash && <FlashBanner name={flash.name} percent={flash.percent} ends={flash.ends_at} />}
       {arrivals.length > 0 && (
         <section className="section container">
           <div className="section-heading">
