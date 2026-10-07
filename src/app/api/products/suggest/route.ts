@@ -18,7 +18,9 @@ export async function GET(request: Request) {
     const db = await supabase();
     let products = db
       .from("products")
-      .select("name,slug,price,categories!inner(name,is_active),product_images(image_url,sort_order)")
+      .select(
+        "name,slug,price,categories!inner(name,is_active),product_images(image_url,sort_order)",
+      )
       .eq("is_active", true)
       .eq("categories.is_active", true)
       .order("is_featured", { ascending: false })

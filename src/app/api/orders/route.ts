@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { serviceKey } from "@/lib/config";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -6,6 +6,7 @@ import { serviceClient, supabase } from "@/lib/supabase/server";
 import { checkoutSchema } from "@/lib/validation";
 import { apiError, checkOrigin, dbError, HttpError, readJson } from "@/lib/http";
 import { expireUnpaidOrders, getOrders } from "@/services/orders";
+import { notifyLowStock } from "@/services/admin";
 import { payhere, whatsappNumber } from "@/lib/config";
 export async function GET() {
   try {
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
       // PGRST202: guest checkout arrives with migration 011.
       if (guestError?.code === "PGRST202") throw new HttpError(401, "Please sign in to continue.");
       if (guestError) dbError(guestError);
+      after(notifyLowStock);
       return NextResponse.json(guest, { status: 201 });
     }
     const db = await supabase();
@@ -53,6 +55,8 @@ export async function POST(request: Request) {
       p_key: idempotency_key,
     });
     if (error) dbError(error);
+    // The order took stock; tell staff if anything has reached its reorder level.
+    after(notifyLowStock);
     return NextResponse.json({ id: data }, { status: 201 });
   } catch (e) {
     return apiError(e);

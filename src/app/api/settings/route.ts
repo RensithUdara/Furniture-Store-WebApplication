@@ -25,8 +25,7 @@ export async function PATCH(request: Request) {
       .eq("id", true)
       .select("id");
     if (error) dbError(error);
-    if (!data?.length)
-      throw new HttpError(404, "Run supabase/migrations/003_settings.sql to enable settings.");
+    if (!data?.length) throw new HttpError(404, "Store settings are not available yet.");
     return NextResponse.json({ ok: true });
   } catch (e) {
     return apiError(e);

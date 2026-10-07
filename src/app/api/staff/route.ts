@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logActivity } from "@/services/admin";
 import { requireAdmin } from "@/lib/auth";
 import { serviceClient } from "@/lib/supabase/server";
 import { staffAccessSchema, staffCreateSchema } from "@/lib/validation";
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
       await db.auth.admin.deleteUser(data.user.id);
       dbError(profileError);
     }
+    await logActivity("Created", "staff account", data.user.id, `${input.name} (${input.email})`);
     return NextResponse.json({ id: data.user.id }, { status: 201 });
   } catch (e) {
     return apiError(e);
@@ -79,6 +81,16 @@ export async function PATCH(request: Request) {
       .update(access === "NONE" ? { role: "CUSTOMER", staff_role_id: null } : accessColumns(access))
       .eq("id", id);
     if (error) dbError(error);
+    await logActivity(
+      "Updated",
+      "staff account",
+      id,
+      access === "NONE"
+        ? "Staff access removed"
+        : access === "ADMIN"
+          ? "Made an admin"
+          : "Staff role changed",
+    );
     return NextResponse.json({ ok: true });
   } catch (e) {
     return apiError(e);
