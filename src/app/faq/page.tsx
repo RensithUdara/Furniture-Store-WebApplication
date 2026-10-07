@@ -14,7 +14,7 @@ export default async function Faq() {
       items: [
         [
           "Do I need an account to order?",
-          "Yes. An account keeps your order history private to you and lets you track or cancel an order later. Your cart is saved in your browser until you sign in.",
+          "No. You can check out as a guest and follow your order with a private link or the Track order page. An account adds saved addresses, coupons, reward points, reviews and your full order history.",
         ],
         [
           "How do I choose a colour or finish?",

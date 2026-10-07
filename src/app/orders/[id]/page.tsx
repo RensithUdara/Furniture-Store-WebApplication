@@ -3,6 +3,7 @@ import { z } from "zod";
 import { currentUser } from "@/lib/auth";
 import { getOrder, getOrderEvents } from "@/services/orders";
 import { OrderDetail } from "@/components/order-detail";
+import { getReturn } from "@/services/shopping";
 import { getSettings } from "@/services/settings";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Order details" };
@@ -25,6 +26,7 @@ export default async function OrderPage({
         order={order}
         settings={await getSettings()}
         events={await getOrderEvents(id)}
+        returnRequest={await getReturn(id)}
         created={q.created === "1"}
         returned={Boolean(q.payment)}
       />
