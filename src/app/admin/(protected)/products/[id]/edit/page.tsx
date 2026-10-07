@@ -4,7 +4,7 @@ import { getCategories, getProduct } from "@/services/catalog";
 import { ProductForm } from "@/components/admin/product-form";
 export const metadata = { title: "Edit product" };
 export default async function EditProduct({ params }: { params: Promise<{ id: string }> }) {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("products"))) return null;
   const [product, categories] = await Promise.all([
     getProduct((await params).id, true),
     getCategories(true),

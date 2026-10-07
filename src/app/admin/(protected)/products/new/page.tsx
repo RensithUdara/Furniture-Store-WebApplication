@@ -3,7 +3,7 @@ import { getCategories } from "@/services/catalog";
 import { ProductForm } from "@/components/admin/product-form";
 export const metadata = { title: "Add product" };
 export default async function NewProduct() {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("products"))) return null;
   return (
     <>
       <div className="admin-heading">

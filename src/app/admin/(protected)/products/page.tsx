@@ -5,7 +5,7 @@ import { getProducts } from "@/services/catalog";
 import { ProductTable } from "@/components/admin/product-table";
 export const metadata = { title: "Manage products" };
 export default async function Products() {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("products"))) return null;
   const products = await getProducts(true);
   return (
     <>

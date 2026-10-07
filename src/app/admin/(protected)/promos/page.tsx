@@ -4,7 +4,7 @@ import { getSettings } from "@/services/settings";
 import { SlideForm } from "@/components/admin/slide-form";
 export const metadata = { title: "Promo slides" };
 export default async function Promos() {
-  if (!(await guardAdminPage())) return null;
+  if (!(await guardAdminPage("promos"))) return null;
   const [slides, settings] = await Promise.all([getSlides(true), getSettings()]);
   // The slides table arrives with the same migration as the pickup settings.
   const migrated = settings?.pickup_open_hour != null;
