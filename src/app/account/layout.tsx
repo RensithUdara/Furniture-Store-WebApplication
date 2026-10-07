@@ -1,4 +1,5 @@
 import { currentUser } from "@/lib/auth";
+import { isStaff } from "@/lib/permissions";
 import { AccountNav } from "@/components/account-nav";
 export const dynamic = "force-dynamic";
 // Shared shell for the customer account area: a sidebar with the signed-in user and section links.
@@ -11,7 +12,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
       <AccountNav
         name={user.profile?.name || ""}
         email={user.email || ""}
-        admin={user.profile?.role === "ADMIN"}
+        admin={isStaff(user.profile)}
       />
       <div className="account-main">{children}</div>
     </div>
