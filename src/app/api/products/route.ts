@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { browse } from "@/services/catalog";
-import { childSlugs, filterProducts, PAGE_SIZE, parseFilter } from "@/lib/catalog-filter";
+import { PAGE_SIZE, parseFilter } from "@/lib/catalog-filter";
 import { requirePermission } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validation";
@@ -14,15 +14,8 @@ export async function GET(request: Request) {
   try {
     const q = new URL(request.url).searchParams;
     const filter = parseFilter((key) => q.get(key));
-    if (!q.has("page")) {
-      const { products, categories } = await browse({}, 1, 0);
-      return NextResponse.json(
-        filterProducts(products, {
-          ...filter,
-          children: filter.category ? childSlugs(categories, filter.category) : undefined,
-        }),
-      );
-    }
+    if (!q.has("page"))
+      return NextResponse.json((await browse(filter, 1, Number.MAX_SAFE_INTEGER)).items);
     const page = Math.min(10000, Math.max(1, Math.floor(Number(q.get("page"))) || 1));
     const limit = Math.min(60, Math.max(1, Math.floor(Number(q.get("limit"))) || PAGE_SIZE));
     const { items, total } = await browse(filter, page, limit);

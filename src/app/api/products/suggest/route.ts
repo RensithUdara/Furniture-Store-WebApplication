@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 6);
-    if (!isConfigured() || !words.join("").length || words.join("").length < 2)
+    if (!isConfigured() || words.join("").length < 2)
       return NextResponse.json({ products: [], categories: [] });
     const db = await supabase();
     let products = db
