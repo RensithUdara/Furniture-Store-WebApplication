@@ -2,6 +2,7 @@ import {
   Ban,
   Check,
   CircleCheckBig,
+  Clock,
   CreditCard,
   PackageCheck,
   PackageOpen,
@@ -96,6 +97,13 @@ function describe(e: OrderEvent, pickup: boolean) {
         title: pickup ? "Collected" : "Delivered",
         text: "Enjoy your new furniture.",
         tone: "good",
+      };
+    case "EXPIRED":
+      return {
+        icon: Clock,
+        title: "Payment time ran out",
+        text: `The payment was not completed within ${e.detail || "the allowed"} minutes.`,
+        tone: "warn",
       };
     case "CANCELLED":
       return {

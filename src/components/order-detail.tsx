@@ -33,6 +33,16 @@ export function OrderDetail({
 }) {
   const local = o.customer_phone.replace(/^\+94|^0/, "");
   const pickup = o.fulfillment_method === "PICKUP";
+  // When an unpaid online order will be cancelled, if that is switched on.
+  const expiry = settings?.unpaid_expiry_minutes;
+  const deadline =
+    !admin &&
+    expiry &&
+    o.payment_method === "PAYHERE" &&
+    o.order_status === "PENDING" &&
+    o.payment_status !== "PAID"
+      ? new Date(Date.parse(o.created_at) + expiry * 60000).toISOString()
+      : null;
   return (
     <>
       <Link className="back-link" href={admin ? "/admin/orders" : "/account/orders"}>
@@ -75,6 +85,12 @@ export function OrderDetail({
         <div className="info-message">
           Your payment has not been confirmed yet. The status updates when PayHere sends its
           verified notification. You can refresh this page or return to your order history later.
+        </div>
+      )}
+      {deadline && (
+        <div className="info-message">
+          <strong>Complete your payment by {dateTime(deadline)}.</strong> After that this order is
+          cancelled automatically and the items go back on sale.
         </div>
       )}
       {o.order_status === "CANCELLED" ? (

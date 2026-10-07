@@ -12,6 +12,8 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
   const extras = settings.pickup_open_hour != null;
   // Loyalty settings exist once migration 006 has been run.
   const rewards = settings.points_per_100 != null;
+  // The unpaid-order setting exists once migration 010 has been run.
+  const expiry = settings.unpaid_expiry_minutes != null;
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -30,6 +32,7 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
               pickup_close_hour: Number(form.get("pickup_close_hour")),
             }
           : {}),
+        ...(expiry ? { unpaid_expiry_minutes: Number(form.get("unpaid_expiry_minutes")) } : {}),
         ...(rewards
           ? {
               points_per_100: Number(form.get("points_per_100")),
@@ -135,6 +138,31 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
           Run <code>supabase/migrations/004_storefront.sql</code> to add contact details, store
           pickup, cash on delivery, sub-categories, and promo slides.
         </div>
+      )}
+      {expiry && (
+        <section className="form-card">
+          <h2>Unpaid online orders</h2>
+          <p>
+            A PayHere order holds its stock while the customer pays. If the payment is not completed
+            in time, the order is cancelled automatically and the items go back on sale. Cash and
+            WhatsApp orders are never cancelled automatically.
+          </p>
+          <div className="form-grid">
+            <label className="field">
+              Cancel after (minutes)
+              <input
+                name="unpaid_expiry_minutes"
+                type="number"
+                min="0"
+                max="10080"
+                step="1"
+                defaultValue={settings.unpaid_expiry_minutes}
+                required
+              />
+              <small>Enter 0 to switch automatic cancelling off. 60 is one hour.</small>
+            </label>
+          </div>
+        </section>
       )}
       {rewards ? (
         <section className="form-card">
