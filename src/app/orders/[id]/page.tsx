@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { currentUser } from "@/lib/auth";
-import { getOrder } from "@/services/orders";
+import { getOrder, getOrderEvents } from "@/services/orders";
 import { OrderDetail } from "@/components/order-detail";
 import { getSettings } from "@/services/settings";
 export const dynamic = "force-dynamic";
@@ -24,6 +24,7 @@ export default async function OrderPage({
       <OrderDetail
         order={order}
         settings={await getSettings()}
+        events={await getOrderEvents(id)}
         created={q.created === "1"}
         returned={Boolean(q.payment)}
       />
