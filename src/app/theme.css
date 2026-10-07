@@ -186,94 +186,6 @@ h2 em {
   align-items: center;
   justify-content: center;
 }
-.nav-row {
-  background: #fff;
-  color: var(--ink);
-  border-bottom: 1px solid var(--line);
-}
-.nav-row > ul {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  list-style: none;
-  padding: 0;
-  position: relative;
-}
-.nav-row > ul > li > a {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 16px 15px;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  transition: color 0.2s;
-}
-.nav-row > ul > li > a:hover,
-.nav-row > ul > li > a.active,
-.nav-row .has-menu:hover > a {
-  color: var(--accent);
-}
-.mega {
-  display: none;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  z-index: 40;
-  grid-template-columns: 1fr 260px;
-  gap: 36px;
-  padding: 32px 36px;
-  background: #fbf2e2;
-  border-radius: 0 0 var(--radius) var(--radius);
-  box-shadow: var(--shadow);
-}
-.has-menu:hover .mega,
-.has-menu:focus-within .mega {
-  display: grid;
-}
-.mega h3 {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-.mega p {
-  font-size: 14px;
-  margin: 0;
-}
-.mega ul {
-  list-style: none;
-  padding: 0;
-  margin: 18px 0 0;
-  columns: 2;
-  column-gap: 40px;
-}
-.mega li a {
-  display: block;
-  padding: 7px 0;
-  font-size: 14.5px;
-}
-.mega li a:hover {
-  color: var(--accent);
-}
-.mega .mega-all {
-  font-weight: 600;
-  color: var(--accent);
-}
-.mega-feature {
-  background: #fff;
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-}
-.mega-feature img {
-  aspect-ratio: 1.2;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
 .drawer-backdrop {
   position: fixed;
   inset: 0;
@@ -981,10 +893,6 @@ code {
 }
 
 @media (max-width: 1180px) {
-  .nav-row > ul > li > a {
-    padding: 15px 11px;
-    font-size: 12.5px;
-  }
   .benefit-strip {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -992,9 +900,6 @@ code {
 @media (max-width: 960px) {
   .navbar .menu-button {
     display: inline-flex;
-  }
-  .nav-row {
-    display: none;
   }
   .navbar-inner {
     flex-wrap: wrap;
@@ -1662,10 +1567,6 @@ a.stat-card:hover {
   }
   .nav-search {
     max-width: 920px;
-  }
-  .nav-row > ul > li > a {
-    padding-inline: 20px;
-    font-size: 14px;
   }
 }
 @media (max-width: 960px) {
@@ -2397,4 +2298,288 @@ td small.wrap {
   margin: 0 0 12px;
   font-size: 13.5px;
   color: var(--blue);
+}
+/* Category bar under the header: a "Shop by category" directory, category links with
+   dropdown panels, and quick links on the right. */
+.catbar {
+  /* The bar sits inside the navy header, which sets white text. */
+  color: var(--ink);
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 10px 22px -18px rgb(22 33 62 / 0.55);
+}
+.catbar-inner {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-height: 56px;
+}
+.catbar-all {
+  display: flex;
+}
+.catbar-all-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 22px;
+  background: linear-gradient(135deg, var(--gold), #f3bb45);
+  color: var(--navy);
+  font-size: 14.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: filter 0.2s;
+}
+.catbar-all-button:hover {
+  filter: brightness(1.06);
+}
+.catbar-links {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  margin: 0 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.catbar-links > li {
+  display: flex;
+}
+.catbar-links > li > a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 14px;
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+/* A gold bar grows under the link on hover and stays under the current page. */
+.catbar-links > li > a::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+.catbar-links > li > a:hover,
+.catbar-links > li > a.active,
+.catbar-links > .has-menu:hover > a,
+.catbar-links > .has-menu:focus-within > a {
+  color: var(--accent);
+}
+.catbar-links > li > a:hover::after,
+.catbar-links > li > a.active::after,
+.catbar-links > .has-menu:hover > a::after,
+.catbar-links > .has-menu:focus-within > a::after {
+  transform: scaleX(1);
+}
+.catbar-links > li > a > svg,
+.catbar-all-button > svg:last-child {
+  transition: transform 0.25s;
+}
+.has-menu:hover > a > svg:last-child,
+.has-menu:focus-within > a > svg:last-child {
+  transform: rotate(180deg);
+}
+.catbar-links .catbar-new {
+  color: var(--orange);
+}
+.catbar-extra {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.catbar-extra a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.catbar-extra a:hover,
+.catbar-extra a.active {
+  background: var(--sand);
+  color: var(--ink);
+}
+/* Dropdown panels fade and slide in. They stay in the layout but hidden, so the animation
+   can run; keyboard users open them by tabbing to the link. */
+.mega {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  padding: 30px 34px;
+  background: #fff;
+  border-top: 3px solid var(--gold);
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 30px 50px -24px rgb(22 33 62 / 0.5);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition:
+    opacity 0.2s,
+    transform 0.2s,
+    visibility 0.2s;
+}
+.has-menu:hover > .mega,
+.has-menu:focus-within > .mega {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.mega .eyebrow {
+  margin-bottom: 6px;
+}
+.mega h3 {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.mega ul {
+  columns: 2;
+  column-gap: 32px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+.mega li a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 15px;
+  font-weight: 500;
+  break-inside: avoid;
+  transition:
+    color 0.2s,
+    transform 0.2s;
+}
+.mega li a svg {
+  color: var(--gold);
+}
+.mega li a:hover {
+  color: var(--accent);
+  transform: translateX(4px);
+}
+.mega .mega-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.mega .mega-all:hover {
+  background: var(--orange);
+}
+.mega-feature {
+  position: relative;
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.mega-feature img {
+  aspect-ratio: 1.35;
+  transition: transform 0.5s;
+}
+.mega-feature:hover img {
+  transform: scale(1.06);
+}
+.mega-feature span {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mega-directory {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 26px 30px;
+}
+.mega-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mega-col-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.mega-col-head img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.mega-col > a:not(.mega-col-head) {
+  padding: 5px 0 5px 55px;
+  font-size: 14px;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.mega-col a:hover {
+  color: var(--accent);
+}
+@media (max-width: 1400px) {
+  .catbar-links > li > a {
+    padding: 0 11px;
+    font-size: 14px;
+  }
+  .catbar-links > li > a::after {
+    left: 11px;
+    right: 11px;
+  }
+  .catbar-extra span {
+    display: none;
+  }
+  .catbar-extra a {
+    padding: 9px;
+  }
+}
+@media (max-width: 1180px) {
+  .catbar-links .catbar-new,
+  .catbar-links > li:nth-child(n + 7) {
+    display: none;
+  }
+}
+@media (max-width: 960px) {
+  /* Phones and tablets use the slide-out menu instead. */
+  .catbar {
+    display: none;
+  }
 }

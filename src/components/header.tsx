@@ -3,7 +3,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  ArrowRight,
   ChevronDown,
+  ChevronRight,
+  CircleHelp,
+  LayoutGrid,
+  PackageSearch,
+  ShieldCheck,
+  Sparkles,
   Heart,
   Menu,
   MessageCircle,
@@ -136,67 +143,91 @@ export function Header({
             </Link>
           </div>
         </div>
-        <nav className="nav-row" aria-label="Main navigation">
-          <ul className="container">
-            <li>
-              <Link className={path === "/" ? "active" : ""} href="/">
-                Home
+        <nav className="catbar" aria-label="Main navigation">
+          <div className="container catbar-inner">
+            {/* Every category and sub-category in one panel. */}
+            <div className="has-menu catbar-all">
+              <Link className="catbar-all-button" href="/products">
+                <LayoutGrid size={18} /> Shop by category <ChevronDown size={16} />
               </Link>
-            </li>
-            {parents.slice(0, 7).map((c) => {
-              const subs = children(c.id);
-              return (
-                <li key={c.id} className={subs.length ? "has-menu" : ""}>
-                  <Link href={`/products?category=${c.slug}`}>
-                    {c.name} {subs.length > 0 && <ChevronDown size={14} />}
-                  </Link>
-                  {subs.length > 0 && (
-                    <div className="mega">
-                      <div>
-                        <h3>{c.name}</h3>
-                        {c.description && <p>{c.description}</p>}
-                        <ul>
-                          {subs.map((s) => (
-                            <li key={s.id}>
-                              <Link href={`/products?category=${s.slug}`}>{s.name}</Link>
-                            </li>
-                          ))}
-                          <li>
-                            <Link className="mega-all" href={`/products?category=${c.slug}`}>
-                              All {c.name.toLowerCase()}
-                            </Link>
-                          </li>
-                        </ul>
-                      </div>
-                      {c.image_url && (
-                        <Link className="mega-feature" href={`/products?category=${c.slug}`}>
-                          <img src={c.image_url} alt="" loading="lazy" />
-                          <span>Shop {c.name.toLowerCase()}</span>
-                        </Link>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-            <li>
-              <Link className={path === "/products" ? "active" : ""} href="/products">
-                All products
-              </Link>
-            </li>
-            {pages.map((p) => (
-              <li key={p.href}>
-                <Link className={path === p.href ? "active" : ""} href={p.href}>
-                  {p.name}
+              <div className="mega mega-directory">
+                {parents.map((c) => (
+                  <div key={c.id} className="mega-col">
+                    <Link className="mega-col-head" href={`/products?category=${c.slug}`}>
+                      {c.image_url && <img src={c.image_url} alt="" loading="lazy" />}
+                      <span>{c.name}</span>
+                    </Link>
+                    {children(c.id).map((sub) => (
+                      <Link key={sub.id} href={`/products?category=${sub.slug}`}>
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <ul className="catbar-links">
+              <li>
+                <Link className={path === "/" ? "active" : ""} href="/">
+                  Home
                 </Link>
               </li>
-            ))}
-            {user?.admin && (
+              {parents.slice(0, 6).map((c) => {
+                const subs = children(c.id);
+                return (
+                  <li key={c.id} className={subs.length ? "has-menu" : ""}>
+                    <Link href={`/products?category=${c.slug}`}>
+                      {c.name} {subs.length > 0 && <ChevronDown size={14} />}
+                    </Link>
+                    {subs.length > 0 && (
+                      <div className="mega">
+                        <div>
+                          <span className="eyebrow">Shop {c.name.toLowerCase()}</span>
+                          <h3>{c.description || c.name}</h3>
+                          <ul>
+                            {subs.map((sub) => (
+                              <li key={sub.id}>
+                                <Link href={`/products?category=${sub.slug}`}>
+                                  <ChevronRight size={15} /> {sub.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                          <Link className="mega-all" href={`/products?category=${c.slug}`}>
+                            View all {c.name.toLowerCase()} <ArrowRight size={15} />
+                          </Link>
+                        </div>
+                        {c.image_url && (
+                          <Link className="mega-feature" href={`/products?category=${c.slug}`}>
+                            <img src={c.image_url} alt="" loading="lazy" />
+                            <span>{c.name}</span>
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
               <li>
-                <Link href="/admin">Admin</Link>
+                <Link className="catbar-new" href="/products?sort=newest">
+                  <Sparkles size={15} /> New in
+                </Link>
               </li>
-            )}
-          </ul>
+            </ul>
+            <div className="catbar-extra">
+              <Link href="/account/orders">
+                <PackageSearch size={17} /> <span>Track order</span>
+              </Link>
+              <Link className={path === "/faq" ? "active" : ""} href="/faq">
+                <CircleHelp size={17} /> <span>Help</span>
+              </Link>
+              {user?.admin && (
+                <Link href="/admin">
+                  <ShieldCheck size={17} /> <span>Admin</span>
+                </Link>
+              )}
+            </div>
+          </div>
         </nav>
       </header>
       {open && (
