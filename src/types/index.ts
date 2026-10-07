@@ -111,6 +111,8 @@ export type StoreSettings = {
   // Present once migration 006 has been run; coupons and reward points are offered only then.
   points_per_100?: number;
   point_value?: number;
+  // Present once migration 010 has been run. 0 means unpaid online orders are never cancelled.
+  unpaid_expiry_minutes?: number;
 };
 export type PromoSlide = {
   id: string;

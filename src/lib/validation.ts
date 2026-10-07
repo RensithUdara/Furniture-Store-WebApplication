@@ -153,6 +153,7 @@ export const settingsSchema = z
     pickup_close_hour: z.number().int().min(1).max(24).optional(),
     points_per_100: z.number().int().min(0).max(100).optional(),
     point_value: z.number().min(0).max(1000).optional(),
+    unpaid_expiry_minutes: z.number().int().min(0).max(10080).optional(),
   })
   .refine(
     (v) =>

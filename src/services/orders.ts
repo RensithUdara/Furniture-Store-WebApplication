@@ -1,10 +1,25 @@
 import "server-only";
-import { supabase } from "@/lib/supabase/server";
+import { serviceClient, supabase } from "@/lib/supabase/server";
 import { requirePermission, requireUser } from "@/lib/auth";
 import type { Order, OrderEvent, PaymentEvent } from "@/types";
+// Cancels PayHere orders left unpaid past the allowed time (migration 010). The database also
+// does this on a schedule where it can; calling it here guarantees it has happened at the moments
+// that matter: before an order is created, paid, opened or listed. At most once a minute per
+// server, and never allowed to break the request it rides on.
+let lastSweep = 0;
+export async function expireUnpaidOrders() {
+  if (Date.now() - lastSweep < 60_000) return;
+  lastSweep = Date.now();
+  try {
+    await serviceClient().rpc("expire_unpaid_orders");
+  } catch {
+    /* No server key or migration 010 not run yet: nothing to expire. */
+  }
+}
 export async function getOrders(admin = false): Promise<Order[]> {
   // The dashboard summarises orders, so it may read them too.
   const user = admin ? await requirePermission("orders", "dashboard") : await requireUser();
+  await expireUnpaidOrders();
   const db = await supabase();
   let q = db.from("orders").select("*,order_items(*)").order("created_at", { ascending: false });
   if (!admin) q = q.eq("user_id", user.id);
@@ -14,6 +29,7 @@ export async function getOrders(admin = false): Promise<Order[]> {
 }
 export async function getOrder(id: string): Promise<Order | null> {
   await requireUser();
+  await expireUnpaidOrders();
   const db = await supabase();
   const { data, error } = await db
     .from("orders")

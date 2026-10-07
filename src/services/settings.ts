@@ -23,6 +23,7 @@ export async function getSettings(): Promise<StoreSettings | null> {
         pickup_close_hour: data.pickup_close_hour,
         points_per_100: data.points_per_100,
         point_value: data.point_value == null ? undefined : Number(data.point_value),
+        unpaid_expiry_minutes: data.unpaid_expiry_minutes ?? undefined,
       }
     : null;
 }
