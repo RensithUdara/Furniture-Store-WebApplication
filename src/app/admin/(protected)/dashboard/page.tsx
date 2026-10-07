@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getBundles } from "@/services/catalog";
 import { AlertTriangle, Armchair, Banknote, ClipboardList, Clock, Plus } from "lucide-react";
 import { guardAdminPage, requirePermission } from "@/lib/auth";
 import { can } from "@/lib/permissions";
@@ -29,6 +30,7 @@ export default async function Dashboard() {
     !(await orderEventsReady()) && "009_order_events.sql",
     settings != null && settings.unpaid_expiry_minutes == null && "010_safety.sql",
     settings != null && settings.return_window_days == null && "011_shopping.sql",
+    (await getBundles(true)) === null && "012_catalogue.sql",
   ].filter((f) => typeof f === "string");
   const firstName = String(user.profile?.name || "").split(" ")[0];
   const today = new Date().toLocaleDateString("en-GB", {
