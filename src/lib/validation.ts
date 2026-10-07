@@ -30,6 +30,7 @@ export const checkoutSchema = z
       .regex(/^[A-Za-z0-9_-]{3,30}$/, "Enter a valid coupon code")
       .optional(),
     redeem_points: z.number().int().min(0).max(9999999).optional(),
+    district: z.string().trim().max(60).optional(),
     idempotency_key: z.uuid(),
     items: z
       .array(z.object({ variant_id: z.uuid(), quantity: z.number().int().min(1).max(20) }))
@@ -72,6 +73,7 @@ export const variantSchema = z.object({
   price: z.number().positive().max(100000000),
   stock_quantity: z.number().int().min(0).max(100000),
   is_active: z.boolean(),
+  compare_at_price: z.number().positive().max(100000000).nullable().optional(),
 });
 export const productSchema = z
   .object({
@@ -99,6 +101,10 @@ export const productSchema = z
   .refine(
     (v) => new Set(v.variants.map((i) => i.sku)).size === v.variants.length,
     "SKUs must be unique",
+  )
+  .refine(
+    (v) => v.variants.every((i) => !i.compare_at_price || i.compare_at_price > i.price),
+    'A "was" price must be higher than the selling price',
   );
 const password = z.string().min(8, "Use at least 8 characters").max(128);
 export const authSchema = z.object({
@@ -154,6 +160,7 @@ export const settingsSchema = z
     points_per_100: z.number().int().min(0).max(100).optional(),
     point_value: z.number().min(0).max(1000).optional(),
     unpaid_expiry_minutes: z.number().int().min(0).max(10080).optional(),
+    return_window_days: z.number().int().min(0).max(365).optional(),
   })
   .refine(
     (v) =>
@@ -232,4 +239,55 @@ export const trackSchema = z.object({
     .trim()
     .regex(/^FRM-[A-F0-9]{12}$/i, "Enter the order number exactly as shown, e.g. FRM-1A2B3C4D5E6F"),
   contact: z.string().trim().min(5, "Enter the phone number or email used on the order").max(254),
+});
+export const reviewSchema = z.object({
+  product_id: z.uuid(),
+  rating: z.number().int().min(1).max(5),
+  title: z.string().trim().max(120),
+  body: z.string().trim().max(2000),
+});
+export const stockAlertSchema = z.object({
+  variant_id: z.uuid(),
+  email: z.email().max(254).optional(),
+});
+export const addressBookSchema = z.object({
+  id: z.uuid().optional(),
+  label: text(40),
+  line1: text(200).min(5, "Enter the street address"),
+  line2: z.string().trim().max(190),
+  city: text(100),
+  district: z.string().trim().max(60),
+  postal_code: z
+    .string()
+    .trim()
+    .regex(/^\d{5}$/, "Enter a 5-digit postal code"),
+  is_default: z.boolean(),
+});
+export const returnRequestSchema = z.object({
+  order_id: z.uuid(),
+  reason: z.enum(["DAMAGED", "FAULTY", "WRONG_ITEM", "CHANGED_MIND", "OTHER"]),
+  details: z.string().trim().max(2000),
+});
+export const returnDecisionSchema = z.object({
+  id: z.uuid(),
+  status: z.enum(["APPROVED", "REJECTED", "REFUNDED"]),
+  note: z.string().trim().max(1000),
+});
+export const zonesSchema = z.object({
+  zones: z
+    .array(
+      z
+        .object({
+          district: text(60),
+          min_days: z.number().int().min(0).max(60),
+          max_days: z.number().int().min(0).max(90),
+          is_active: z.boolean(),
+        })
+        .refine(
+          (z) => z.min_days <= z.max_days,
+          "The shortest time cannot be longer than the longest",
+        ),
+    )
+    .min(1)
+    .max(60),
 });

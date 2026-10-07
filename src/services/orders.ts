@@ -73,3 +73,13 @@ export async function orderEventsReady() {
   const { error } = await db.from("order_events").select("id").limit(1);
   return !(error && (error.code === "PGRST205" || error.code === "42P01"));
 }
+// An order for the caller: their own (or any, for staff) when signed in, or a guest order when
+// the matching token is supplied. Returns null when neither applies.
+export async function getOrderByAccess(id: string, token?: string | null): Promise<Order | null> {
+  if (token) {
+    const { getGuestOrder } = await import("@/services/shopping");
+    const order = await getGuestOrder(token);
+    return order && order.id === id ? order : null;
+  }
+  return getOrder(id);
+}

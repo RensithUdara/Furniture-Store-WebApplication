@@ -20,11 +20,11 @@ export async function api<T = Record<string, unknown>>(
   if (!response.ok) throw new Error(data.error || "Something went wrong. Please try again.");
   return data as T;
 }
-export async function startPayment(id: string) {
+export async function startPayment(id: string, token?: string) {
   const result = await api<{ action: string; fields: Record<string, string> }>(
     "/api/payments/payhere",
     "POST",
-    { id },
+    { id, ...(token ? { token } : {}) },
   );
   // Card details are only ever posted to PayHere's own checkout pages.
   if (!(Object.values(PAYHERE_URLS) as string[]).includes(result.action))
