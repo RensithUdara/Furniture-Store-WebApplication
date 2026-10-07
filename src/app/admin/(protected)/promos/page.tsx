@@ -20,11 +20,7 @@ export default async function Promos() {
       {migrated ? (
         <SlideManager slides={slides} />
       ) : (
-        <div className="info-message">
-          Promo slides need the latest database update. Run{" "}
-          <code>supabase/migrations/003_settings.sql</code> and then{" "}
-          <code>supabase/migrations/004_storefront.sql</code> in the Supabase SQL editor.
-        </div>
+        <div className="info-message">Promo slides are not available yet.</div>
       )}
     </>
   );

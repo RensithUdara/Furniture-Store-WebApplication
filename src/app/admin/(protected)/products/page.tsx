@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Layers, Plus } from "lucide-react";
+import { FileSpreadsheet, Layers, Plus } from "lucide-react";
 import { guardAdminPage } from "@/lib/auth";
 import { getProducts } from "@/services/catalog";
 import { ProductTable } from "@/components/admin/product-table";
@@ -19,6 +19,9 @@ export default async function Products() {
           </p>
         </div>
         <div className="row-actions">
+          <Link className="button button-outline" href="/admin/products/import">
+            <FileSpreadsheet size={16} /> Import / export
+          </Link>
           <Link className="button button-outline" href="/admin/products/sets">
             <Layers size={16} /> Room sets
           </Link>

@@ -23,10 +23,7 @@ export default async function Sets() {
         </Link>
       </div>
       {bundles === null ? (
-        <div className="info-message">
-          Room sets need the latest database update. Run{" "}
-          <code>supabase/migrations/012_catalogue.sql</code> in the Supabase SQL editor.
-        </div>
+        <div className="info-message">Room sets are not available yet.</div>
       ) : (
         <BundleManager bundles={bundles} products={products} />
       )}

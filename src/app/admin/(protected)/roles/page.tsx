@@ -23,10 +23,7 @@ export default async function Roles() {
         </Link>
       </div>
       {roles === null ? (
-        <div className="info-message">
-          Roles need the latest database update. Run <code>supabase/migrations/007_staff.sql</code>{" "}
-          in the Supabase SQL editor.
-        </div>
+        <div className="info-message">Roles are not available yet.</div>
       ) : (
         <RoleManager roles={roles} staff={staff || []} />
       )}
