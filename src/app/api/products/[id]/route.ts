@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProduct } from "@/services/catalog";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { apiError, checkOrigin, dbError, HttpError, readJson } from "@/lib/http";
 import { productStatusSchema } from "@/lib/validation";
@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     checkOrigin(request);
-    await requireAdmin();
+    await requirePermission("products");
     const id = z.uuid().parse((await params).id);
     const db = await supabase();
     const { error } = await db.from("products").update({ is_active: false }).eq("id", id);
@@ -31,7 +31,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     checkOrigin(request);
-    await requireAdmin();
+    await requirePermission("products");
     const id = z.uuid().parse((await params).id);
     const input = productStatusSchema.parse(await readJson(request));
     const db = await supabase();

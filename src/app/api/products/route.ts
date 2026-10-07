@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCategories, getProducts } from "@/services/catalog";
 import { childSlugs, filterProducts } from "@/lib/catalog-filter";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validation";
 import { apiError, checkOrigin, dbError, readJson } from "@/lib/http";
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     checkOrigin(request);
-    await requireAdmin();
+    await requirePermission("products");
     const input = productSchema.parse(await readJson(request));
     const db = await supabase();
     const { data, error } = await db.rpc("save_product", { p: input });
