@@ -13,8 +13,15 @@ import {
 import { useCart } from "@/components/cart-provider";
 import { useConfirm } from "@/components/dialogs";
 import { money, deliveryFee, deliveryLabel } from "@/lib/format";
-import type { StoreSettings } from "@/types";
-export function CartPage({ settings }: { settings: StoreSettings | null }) {
+import { bundleDiscount } from "@/lib/bundles";
+import type { Bundle, StoreSettings } from "@/types";
+export function CartPage({
+  settings,
+  bundles = [],
+}: {
+  settings: StoreSettings | null;
+  bundles?: Bundle[];
+}) {
   const { items, ready, update, remove, clear, fulfil, setFulfil } = useCart();
   const confirm = useConfirm();
   // Pickup needs the store hours added by migration 004; without them only delivery is offered.
@@ -23,6 +30,8 @@ export function CartPage({ settings }: { settings: StoreSettings | null }) {
   const subtotal = items.reduce((a, i) => a + i.price * i.quantity, 0);
   const delivery = pickup ? 0 : deliveryFee(subtotal, settings);
   const goal = settings?.free_delivery_from || 0;
+  // An estimate for display; the database works the set discount out again on the order.
+  const sets = bundleDiscount(items, bundles);
   if (!ready)
     return (
       <div className="container page-space" aria-busy="true">
@@ -141,9 +150,15 @@ export function CartPage({ settings }: { settings: StoreSettings | null }) {
             <span>{pickup ? "Store pickup" : "Delivery"}</span>
             <span>{pickup ? "Free" : deliveryLabel(delivery)}</span>
           </div>
+          {sets.amount > 0 && (
+            <div className="summary-line discount">
+              <span>Set saving ({sets.names.join(", ")})</span>
+              <span>− {money(sets.amount)}</span>
+            </div>
+          )}
           <div className="summary-line total">
             <span>Total</span>
-            <span>{money(subtotal + (delivery || 0))}</span>
+            <span>{money(subtotal - sets.amount + (delivery || 0))}</span>
           </div>
           {canChoose && (
             <fieldset className="fulfil-choice">

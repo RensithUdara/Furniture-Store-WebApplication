@@ -4,6 +4,8 @@ import { currentUser } from "@/lib/auth";
 import { allowedAreas, isStaff } from "@/lib/permissions";
 import { AdminShell } from "@/components/admin-shell";
 export const dynamic = "force-dynamic";
+// The admin panel is never shown in search results.
+export const metadata = { robots: { index: false, follow: false } };
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
   if (!user) redirect("/admin");

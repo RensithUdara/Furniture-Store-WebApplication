@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import {
   ArrowRight,
   Banknote,
+  CalendarClock,
   CreditCard,
   LockKeyhole,
   MessageCircle,
@@ -12,8 +13,9 @@ import {
   Truck,
 } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
-import { money, deliveryFee, deliveryLabel } from "@/lib/format";
-import type { PaymentMethod, StoreSettings } from "@/types";
+import { money, deliveryFee, deliveryLabel, shortDate } from "@/lib/format";
+import type { Address, Bundle, DeliveryZone, PaymentMethod, StoreSettings } from "@/types";
+import { bundleDiscount } from "@/lib/bundles";
 import { checkoutSchema } from "@/lib/validation";
 import { api, startPayment } from "@/lib/client-api";
 // Dates are chosen in Sri Lanka time (UTC+05:30), whatever the shopper's device is set to.
@@ -28,7 +30,13 @@ export function CheckoutForm({
   phone = "",
   address,
   points = 0,
+  guest = false,
+  zones = [],
+  addresses = [],
+  bundles = [],
 }: {
+  // Active room sets, to preview the set saving.
+  bundles?: Bundle[];
   sandbox?: boolean;
   settings: StoreSettings | null;
   name?: string;
@@ -38,6 +46,12 @@ export function CheckoutForm({
   address?: { line1: string; line2: string; city: string; postal: string };
   // The customer's reward point balance.
   points?: number;
+  // Checking out without an account: no coupons, points or saved addresses.
+  guest?: boolean;
+  // Districts the store delivers to, with delivery times.
+  zones?: DeliveryZone[];
+  // The customer's address book.
+  addresses?: Address[];
 }) {
   // Delivery or pickup is first chosen on the cart page and can still be changed here.
   const { items, ready, clear, fulfil, setFulfil } = useCart();
@@ -52,23 +66,51 @@ export function CheckoutForm({
   const [couponError, setCouponError] = useState("");
   const [couponBusy, setCouponBusy] = useState(false);
   const [redeem, setRedeem] = useState("");
+  // The address book entry the form starts from; the fields stay editable for this order.
+  const [picked, setPicked] = useState(
+    addresses.find((a) => a.is_default)?.id || addresses[0]?.id || "",
+  );
+  const chosen = addresses.find((a) => a.id === picked);
+  const start = chosen
+    ? { line1: chosen.line1, line2: chosen.line2, city: chosen.city, postal: chosen.postal_code }
+    : addresses.length
+      ? undefined
+      : address;
+  const [district, setDistrict] = useState(chosen?.district || "");
+  const zone = zones.find((z) => z.district === district);
+  // Dates are worked out in Sri Lanka time; the database stores the same window on the order.
+  const dayFromNow = (days: number) =>
+    shortDate(new Date(Date.now() + 5.5 * 3600000 + days * 86400000).toISOString());
+  const estimate = zone
+    ? zone.min_days === zone.max_days
+      ? dayFromNow(zone.min_days)
+      : `${dayFromNow(zone.min_days)} – ${dayFromNow(zone.max_days)}`
+    : "";
   // Cash on delivery and pickup need the columns added by migration 004.
   const open = settings?.pickup_open_hour,
     close = settings?.pickup_close_hour;
   const extras = open != null && close != null;
   const pickup = extras && fulfil === "PICKUP";
   const subtotal = items.reduce((a, i) => a + i.price * i.quantity, 0),
-    delivery = pickup ? 0 : deliveryFee(subtotal, settings);
+    standard = deliveryFee(subtotal, settings),
+    // A district can have its own fee (migration 013). Free delivery still wins.
+    delivery = pickup ? 0 : standard && zone?.fee != null ? Number(zone.fee) : standard;
   // Coupons and points need migration 006. These figures are estimates for display;
   // the database recalculates both when it saves the order.
   const pointValue = settings?.point_value;
-  const rewards = pointValue != null;
-  const discount = Math.min(coupon?.discount || 0, subtotal);
+  const rewards = pointValue != null && !guest;
+  const sets = bundleDiscount(items, bundles);
+  const setsOff = Math.min(sets.amount, subtotal);
+  const discount = Math.min(coupon?.discount || 0, subtotal - setsOff);
   const usable =
-    rewards && pointValue > 0 ? Math.min(points, Math.ceil((subtotal - discount) / pointValue)) : 0;
+    rewards && pointValue > 0
+      ? Math.min(points, Math.ceil((subtotal - setsOff - discount) / pointValue))
+      : 0;
   const redeemPoints = Math.max(0, Math.min(usable, Math.floor(Number(redeem) || 0)));
-  const pointsOff = rewards ? Math.min(redeemPoints * pointValue, subtotal - discount) : 0;
-  const total = subtotal - discount - pointsOff + (delivery || 0);
+  const pointsOff = rewards
+    ? Math.min(redeemPoints * pointValue, subtotal - setsOff - discount)
+    : 0;
+  const total = subtotal - setsOff - discount - pointsOff + (delivery || 0);
   async function applyCoupon() {
     setCouponBusy(true);
     setCouponError("");
@@ -115,6 +157,7 @@ export function CheckoutForm({
             }
           : {}),
         payment_method: method,
+        ...(district && !pickup ? { district } : {}),
         ...(coupon ? { coupon_code: coupon.code } : {}),
         ...(redeemPoints > 0 ? { redeem_points: redeemPoints } : {}),
         items: items.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
@@ -130,13 +173,19 @@ export function CheckoutForm({
         );
         throw new Error("Please check the highlighted details.");
       }
-      const { id } = await api<{ id: string }>("/api/orders", "POST", parsed.data);
-      setSavedId(id);
+      // A guest order comes back with its private token, which is how the guest reaches it.
+      const { id, token } = await api<{ id: string; token?: string }>(
+        "/api/orders",
+        "POST",
+        parsed.data,
+      );
+      const path = token ? `guest/${token}` : id;
+      setSavedId(path);
       clear();
       if (method === "PAYHERE") {
-        await startPayment(id);
+        await startPayment(id, token);
       } else {
-        window.location.assign(`/orders/${id}?created=1`);
+        window.location.assign(`/orders/${path}?created=1`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to place the order.");
@@ -215,6 +264,12 @@ export function CheckoutForm({
   return (
     <form onSubmit={submit} className="checkout-layout">
       <div>
+        {guest && (
+          <div className="info-message">
+            You are checking out as a guest. <Link href="/login?next=/checkout">Sign in</Link> to
+            use coupons, reward points and saved addresses, and to keep your order history.
+          </div>
+        )}
         <section className="form-card">
           <h2>
             <span className="step">1</span> Contact details
@@ -333,12 +388,31 @@ export function CheckoutForm({
               </label>
             </div>
           ) : (
-            <div className="form-grid">
+            <div className="form-grid" key={picked}>
+              {addresses.length > 0 && (
+                <label className="field full">
+                  Deliver to
+                  <select
+                    value={picked}
+                    onChange={(e) => {
+                      setPicked(e.target.value);
+                      setDistrict(addresses.find((a) => a.id === e.target.value)?.district || "");
+                    }}
+                  >
+                    {addresses.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.label}: {a.line1}, {a.city}
+                      </option>
+                    ))}
+                    <option value="">A different address</option>
+                  </select>
+                </label>
+              )}
               <label className="field full">
                 Address line 1
                 <input
                   name="address_line1"
-                  defaultValue={address?.line1}
+                  defaultValue={start?.line1}
                   autoComplete="address-line1"
                   placeholder="House number and street"
                   minLength={5}
@@ -351,7 +425,7 @@ export function CheckoutForm({
                 Address line 2 (optional)
                 <input
                   name="address_line2"
-                  defaultValue={address?.line2}
+                  defaultValue={start?.line2}
                   autoComplete="address-line2"
                   placeholder="Apartment, floor, landmark"
                   maxLength={190}
@@ -361,7 +435,7 @@ export function CheckoutForm({
                 City
                 <input
                   name="city"
-                  defaultValue={address?.city}
+                  defaultValue={start?.city}
                   autoComplete="address-level2"
                   maxLength={100}
                   required
@@ -372,7 +446,7 @@ export function CheckoutForm({
                 Postal code
                 <input
                   name="postal_code"
-                  defaultValue={address?.postal}
+                  defaultValue={start?.postal}
                   autoComplete="postal-code"
                   inputMode="numeric"
                   pattern="[0-9]{5}"
@@ -381,6 +455,25 @@ export function CheckoutForm({
                 />
                 {fieldError("postal_code")}
               </label>
+              {zones.length > 0 && (
+                <label className="field full">
+                  District
+                  <select value={district} onChange={(e) => setDistrict(e.target.value)} required>
+                    <option value="" disabled>
+                      Choose your district
+                    </option>
+                    {zones.map((z) => (
+                      <option key={z.district}>{z.district}</option>
+                    ))}
+                  </select>
+                  {estimate && (
+                    <small className="estimate-line">
+                      <CalendarClock size={14} /> Estimated delivery: <strong>{estimate}</strong>
+                    </small>
+                  )}
+                  {fieldError("district")}
+                </label>
+              )}
             </div>
           )}
         </section>
@@ -508,6 +601,12 @@ export function CheckoutForm({
           <span>{pickup ? "Store pickup" : "Delivery"}</span>
           <span>{pickup ? "Free" : deliveryLabel(delivery)}</span>
         </div>
+        {setsOff > 0 && (
+          <div className="summary-line discount">
+            <span>Set saving ({sets.names.join(", ")})</span>
+            <span>− {money(setsOff)}</span>
+          </div>
+        )}
         {discount > 0 && (
           <div className="summary-line discount">
             <span>Coupon {coupon?.code}</span>
@@ -518,6 +617,12 @@ export function CheckoutForm({
           <div className="summary-line discount">
             <span>{redeemPoints.toLocaleString("en-LK")} reward points</span>
             <span>− {money(pointsOff)}</span>
+          </div>
+        )}
+        {estimate && !pickup && (
+          <div className="summary-line">
+            <span>Estimated delivery</span>
+            <span>{estimate}</span>
           </div>
         )}
         <div className="summary-line total">
