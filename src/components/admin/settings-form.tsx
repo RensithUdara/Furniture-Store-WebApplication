@@ -33,6 +33,12 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
             }
           : {}),
         ...(expiry ? { unpaid_expiry_minutes: Number(form.get("unpaid_expiry_minutes")) } : {}),
+        ...(settings.return_window_days != null
+          ? { return_window_days: Number(form.get("return_window_days")) }
+          : {}),
+        ...(settings.cart_reminder_hours != null
+          ? { cart_reminder_hours: Number(form.get("cart_reminder_hours")) }
+          : {}),
         ...(rewards
           ? {
               points_per_100: Number(form.get("points_per_100")),
@@ -133,12 +139,7 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
             </label>
           </div>
         </section>
-      ) : (
-        <div className="info-message">
-          Run <code>supabase/migrations/004_storefront.sql</code> to add contact details, store
-          pickup, cash on delivery, sub-categories, and promo slides.
-        </div>
-      )}
+      ) : null}
       {expiry && (
         <section className="form-card">
           <h2>Unpaid online orders</h2>
@@ -160,6 +161,55 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
                 required
               />
               <small>Enter 0 to switch automatic cancelling off. 60 is one hour.</small>
+            </label>
+          </div>
+        </section>
+      )}
+      {settings.cart_reminder_hours != null && (
+        <section className="form-card">
+          <h2>Abandoned bag reminders</h2>
+          <p>
+            A signed-in customer who leaves items in their bag gets one email reminding them, with a
+            link back to it. Guests are never emailed, and every reminder has a link to stop them.
+            Sending needs the email settings (RESEND_API_KEY, EMAIL_FROM) on the server.
+          </p>
+          <div className="form-grid">
+            <label className="field">
+              Send after (hours)
+              <input
+                name="cart_reminder_hours"
+                type="number"
+                min="0"
+                max="168"
+                step="1"
+                defaultValue={settings.cart_reminder_hours}
+                required
+              />
+              <small>Enter 0 to switch reminders off. 24 is one day.</small>
+            </label>
+          </div>
+        </section>
+      )}
+      {settings.return_window_days != null && (
+        <section className="form-card">
+          <h2>Returns</h2>
+          <p>
+            Customers can request a return from their order page for this many days after delivery.
+            Keep it in line with your published refund policy.
+          </p>
+          <div className="form-grid">
+            <label className="field">
+              Return period (days)
+              <input
+                name="return_window_days"
+                type="number"
+                min="0"
+                max="365"
+                step="1"
+                defaultValue={settings.return_window_days}
+                required
+              />
+              <small>Enter 0 to stop accepting return requests online.</small>
             </label>
           </div>
         </section>
@@ -198,12 +248,7 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
             </label>
           </div>
         </section>
-      ) : (
-        <div className="info-message">
-          Run <code>supabase/migrations/006_rewards.sql</code> to add the wishlist, coupons, and
-          reward points.
-        </div>
-      )}
+      ) : null}
       {error && (
         <p className="error-message" role="alert">
           {error}
