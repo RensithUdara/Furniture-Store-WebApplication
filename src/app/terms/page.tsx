@@ -1,6 +1,12 @@
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { InfoPage } from "@/components/info-page";
-export const metadata = { title: "Terms of use" };
+export const metadata = pageMeta({
+  title: "Terms of use",
+  description:
+    "The terms that apply when you browse and order from the Forma & Co. online furniture store.",
+  path: "/terms",
+});
 export default function Terms() {
   return (
     <InfoPage
