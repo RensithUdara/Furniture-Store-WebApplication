@@ -28,6 +28,7 @@ export default async function Dashboard() {
     orders.length > 0 && orders[0].tracking_number === undefined && "008_tracking.sql",
     !(await orderEventsReady()) && "009_order_events.sql",
     settings != null && settings.unpaid_expiry_minutes == null && "010_safety.sql",
+    settings != null && settings.return_window_days == null && "011_shopping.sql",
   ].filter((f) => typeof f === "string");
   const firstName = String(user.profile?.name || "").split(" ")[0];
   const today = new Date().toLocaleDateString("en-GB", {

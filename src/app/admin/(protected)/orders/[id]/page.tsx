@@ -3,6 +3,8 @@ import { z } from "zod";
 import { guardAdminPage } from "@/lib/auth";
 import { getOrder, getOrderEvents, getPaymentEvents } from "@/services/orders";
 import { OrderDetail } from "@/components/order-detail";
+import { getReturn } from "@/services/shopping";
+import { getSettings } from "@/services/settings";
 export const metadata = { title: "Manage order" };
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   if (!(await guardAdminPage("orders"))) return null;
@@ -16,6 +18,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       admin
       payments={await getPaymentEvents(id)}
       events={await getOrderEvents(id)}
+      returnRequest={await getReturn(id)}
+      settings={await getSettings()}
     />
   );
 }

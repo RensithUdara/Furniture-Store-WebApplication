@@ -1,9 +1,13 @@
 import { guardAdminPage } from "@/lib/auth";
 import { getProducts } from "@/services/catalog";
+import { getStockAlerts } from "@/services/shopping";
 import { InventoryTable } from "@/components/admin/inventory-table";
+import { StockAlertList } from "@/components/account-extras";
 export const metadata = { title: "Manage inventory" };
 export default async function Inventory() {
   if (!(await guardAdminPage("inventory"))) return null;
+  const [products, alerts] = await Promise.all([getProducts(true), getStockAlerts()]);
+  const ready = alerts.filter((a) => a.ready_at).length;
   return (
     <>
       <div className="admin-heading">
@@ -13,7 +17,20 @@ export default async function Inventory() {
           <p>Stock is available-to-sell inventory, excluding units already reserved by orders.</p>
         </div>
       </div>
-      <InventoryTable products={await getProducts(true)} />
+      <InventoryTable products={products} />
+      {alerts.length > 0 && (
+        <>
+          <div className="admin-section-title">
+            <h2>Customers waiting for stock</h2>
+          </div>
+          <p className="muted">
+            {ready > 0
+              ? `${ready} ${ready === 1 ? "request is" : "requests are"} for items now back in stock. Contact the customer, then remove the request.`
+              : "These customers asked to be told when a sold-out finish returns. Restocking it marks their request as ready."}
+          </p>
+          <StockAlertList alerts={alerts} admin />
+        </>
+      )}
     </>
   );
 }
