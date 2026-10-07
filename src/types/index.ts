@@ -19,6 +19,8 @@ export type Variant = {
   is_active: boolean;
   // The "was" price, when this finish is on sale (migration 011).
   compare_at_price?: number | null;
+  // Present once migration 013 has been run: stock at or below this is "low".
+  reorder_level?: number;
 };
 export type ProductImage = { id: string; image_url: string; sort_order: number };
 export type Product = {
@@ -38,6 +40,23 @@ export type Product = {
   product_images: ProductImage[];
   product_variants: Variant[];
   rating?: { avg: number; count: number };
+  // Present once migration 012 has been run.
+  rooms?: string[];
+  size?: string;
+  video_url?: string;
+  // Set on the storefront while a flash sale on this product is running (migration 014).
+  // The variants' prices are already the sale prices.
+  flash?: { name: string; percent: number; ends_at: string };
+};
+// A room set: products that earn a discount when ordered together (migration 012).
+export type Bundle = {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
+  discount_percent: number;
+  is_active: boolean;
+  product_ids: string[];
 };
 export type CartItem = {
   variant_id: string;
@@ -93,6 +112,11 @@ export type Order = {
   discount_amount?: number;
   points_redeemed?: number;
   points_discount?: number;
+  // Present once migration 012 has been run.
+  bundle_discount?: number;
+  bundle_names?: string;
+  // Present once migration 013 has been run.
+  refunded_amount?: number;
   payment_status: PaymentStatus;
   order_status: OrderStatus;
   requires_review: boolean;
@@ -123,6 +147,8 @@ export type StoreSettings = {
   unpaid_expiry_minutes?: number;
   // Present once migration 011 has been run.
   return_window_days?: number;
+  // Present once migration 014 has been run. 0 means no cart reminders are sent.
+  cart_reminder_hours?: number;
 };
 export type PromoSlide = {
   id: string;
@@ -198,6 +224,8 @@ export type DeliveryZone = {
   min_days: number;
   max_days: number;
   is_active: boolean;
+  // This district's own delivery fee; null uses the standard fee (migration 013).
+  fee?: number | null;
 };
 export type StockAlert = {
   id: string;
@@ -222,4 +250,64 @@ export type ReturnRequest = {
   admin_note: string;
   created_at: string;
   updated_at: string;
+};
+// Admin tools (migration 013).
+export type Customer = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  loyalty_points: number;
+  joined_at: string;
+  order_count: number;
+  total_spent: number;
+  last_order_at: string | null;
+};
+export type StockMovement = {
+  id: number;
+  variant_id: string;
+  change: number;
+  quantity_after: number;
+  reason: "INITIAL" | "ORDER" | "RETURNED" | "ADJUSTMENT" | "IMPORT";
+  note: string;
+  actor_name: string;
+  created_at: string;
+  product_variants: { sku: string; color: string; products: { name: string } | null } | null;
+};
+export type Refund = {
+  id: string;
+  order_id: string;
+  amount: number;
+  method: "PAYHERE" | "MANUAL";
+  reference: string;
+  note: string;
+  actor_name: string;
+  created_at: string;
+};
+export type Activity = {
+  id: number;
+  actor_name: string;
+  action: string;
+  entity: string;
+  entity_id: string;
+  summary: string;
+  created_at: string;
+};
+// Marketing (migration 014).
+export type FlashSale = {
+  id: string;
+  name: string;
+  discount_percent: number;
+  starts_at: string;
+  ends_at: string;
+  all_products: boolean;
+  is_active: boolean;
+  product_ids: string[];
+};
+export type Subscriber = {
+  id: string;
+  email: string;
+  created_at: string;
+  unsubscribed_at: string | null;
 };
