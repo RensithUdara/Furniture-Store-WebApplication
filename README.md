@@ -69,17 +69,35 @@ The application uses **Sri Lankan rupees (LKR)** and displays dates in **Asia/Co
 - Delivery and scheduled store pickup.
 - PayHere, cash, and WhatsApp ordering options.
 - Coupon discounts and loyalty point redemption.
+- Sale prices: a struck-through “was” price and a percentage-off badge per finish.
+- Ratings and reviews, accepted only from customers whose order containing the product was delivered.
+- Side-by-side comparison of up to four products (price, rating, material, dimensions, finishes, availability).
+- “Recently viewed” (kept in the browser) and “Customers also bought” (from real order history) rows.
+- Back-in-stock requests on sold-out finishes, for signed-in customers and guests.
+- Guest checkout with a private order link, and order tracking without an account.
+- Estimated delivery dates by district, shown at checkout and stored on the order.
+- Flash sales: a percentage off chosen products or the whole store between two moments, with a countdown. The database charges the sale price itself.
+- Newsletter signup in the footer, with one-click unsubscribe; staff download the list as CSV.
+- A signed-in customer’s bag is kept on the server, follows them between devices, and can trigger one reminder email.
+- Search-engine optimisation: `sitemap.xml`, `robots.txt`, a title, description and canonical address on every public page, a page per category, structured data (store, site search, product, breadcrumbs, FAQ, product lists), share previews, site icons and a web manifest. Private pages, searches and filtered views are kept out of the index. `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` add the ownership tags.
+- Search suggestions as you type in the header, with product thumbnails and matching categories.
+- Catalogue filters for material, colour, size and room, with shareable filter links.
+- The catalogue is filtered on the server and sent 24 products at a time, with “Load more”.
+- Hover zoom and a full-screen gallery on the product page, with an optional product video (YouTube or .mp4/.webm link).
+- Room sets: products that cost less when ordered together. The database applies the saving when the order is saved.
 - Help, FAQ, warranty, refund policy, and terms pages.
 
 ### 👤 Customer accounts
 
 - Email/password registration, login, email confirmation, and password recovery.
-- Editable profile and saved delivery address.
+- Editable profile and an address book (home, office, …) with one default.
 - Wishlist for signed-in customers.
 - Order history, order details, courier information, and tracking numbers.
 - Downloadable PDF invoices.
 - Reward point balance and transaction history.
 - Cancellation of eligible pending, unpaid orders.
+- Return and refund requests from the order page within the store’s return period, with a visible status.
+- A list of back-in-stock requests, marked when the item returns.
 
 ### 🧑‍💼 Store administration
 
@@ -91,6 +109,18 @@ The application uses **Sri Lankan rupees (LKR)** and displays dates in **Asia/Co
 - Percentage and fixed-value coupons with validity and usage controls.
 - Configurable delivery fees, free-delivery threshold, contact details, pickup hours, and rewards.
 - Staff accounts and configurable permissions for each admin area.
+- Optional “was” price per variant, delivery times per district, and the return period.
+- Return requests approved, rejected, or marked refunded from the order page, with a note to the customer.
+- A waiting list of customers who asked for sold-out items, shown under inventory.
+- Sales reports by day, week and month with best sellers, downloadable as CSV or Excel; sales-trend and top-category charts on the dashboard.
+- A reorder level per finish, a stock history (who changed what, when and why), and optional low-stock emails.
+- Bulk product import and edit from a spreadsheet (CSV), with a per-product result.
+- A customer list with order count, total spent and reward points, and manual point adjustments.
+- Refunds on paid orders: through PayHere’s Refund API, or recorded by hand.
+- A printable packing slip and delivery note for each order.
+- An activity log of what admins and staff changed.
+- A delivery fee per district, in place of one flat fee.
+- Unpaid PayHere orders cancelled automatically after a configurable time, and rate limits on sign-in, checkout, and lookups.
 
 ### 🔐 Implementation safeguards
 
@@ -208,39 +238,19 @@ Restart the development server after changing environment values. Supply product
 
 ## 🗄️ Database and sample catalog
 
-**Fresh-clone prerequisite:** This workspace contains `supabase/migrations/001_store.sql` through `008_tracking.sql` and `supabase/seed.sql`, but they are not tracked in Git because [.gitignore](.gitignore) excludes `*.sql`. Obtain these files from the maintainer before following the setup. The paths below describe the local setup files; a clone alone currently does not provide them.
+**Fresh-clone prerequisite:** This workspace contains `supabase/migrations/001_store.sql` through `014_marketing.sql` and `supabase/seed.sql`, but they are not tracked in Git because [.gitignore](.gitignore) excludes `*.sql`. Obtain these files from the maintainer before following the setup. The paths below describe the local setup files; a clone alone currently does not provide them.
 
 There is no checked-in Supabase CLI configuration. The existing SQL files are intended to be applied through the Supabase SQL editor.
 
-### Setup order
-
-For a new project with the sample catalog, run one file at a time in this order:
-
-| Step | SQL file                                 | What it adds                                                                          |
-| ---- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| 1    | `supabase/migrations/001_store.sql`      | Profiles, catalog, variants, orders, payment events, RLS, and core database functions |
-| 2    | `supabase/migrations/002_storage.sql`    | Product/category image buckets and storage policies                                   |
-| 3    | `supabase/seed.sql`                      | Optional sample furniture catalog, images, and variants                               |
-| 4    | `supabase/migrations/003_settings.sql`   | Configurable delivery pricing                                                         |
-| 5    | `supabase/migrations/004_storefront.sql` | Subcategories, promotional slides, store contact details, COD, and pickup             |
-| 6    | `supabase/migrations/005_account.sql`    | Saved customer addresses                                                              |
-| 7    | `supabase/migrations/006_rewards.sql`    | Wishlists, coupons, loyalty balances, and points ledger                               |
-| 8    | `supabase/migrations/007_staff.sql`      | Staff roles, area permissions, and updated access policies                            |
-| 9    | `supabase/migrations/008_tracking.sql`   | Courier names and tracking numbers                                                    |
-
-Seeding before `004_storefront.sql` allows that migration to place the sample products into its starter subcategories. Skip the seed for a catalog you will populate yourself. On an existing database, apply only missing migrations in sequence; the initial schema and storage scripts are not general-purpose rerunnable migrations.
-
-The sample seed contains six top-level categories, eight products, and sixteen variants, including an out-of-stock example. Its illustrative images are stored in `public/images/`. These are database seed records, not an automatic in-code fallback.
-
 ### Data model
 
-| Area                | Tables                                                         |
-| ------------------- | -------------------------------------------------------------- |
-| Accounts and access | `profiles`, `staff_roles`                                      |
-| Catalog             | `categories`, `products`, `product_images`, `product_variants` |
-| Orders and payments | `orders`, `order_items`, `payment_events`                      |
-| Store configuration | `store_settings`, `promo_slides`                               |
-| Customer engagement | `wishlist_items`, `coupons`, `loyalty_ledger`                  |
+| Area                | Tables                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| Accounts and access | `profiles`, `staff_roles`                                                                     |
+| Catalog             | `categories`, `products`, `product_images`, `product_variants`                                |
+| Orders and payments | `orders`, `order_items`, `payment_events`, `order_events`, `return_requests`                  |
+| Store configuration | `store_settings`, `promo_slides`, `delivery_zones`                                            |
+| Customer engagement | `wishlist_items`, `coupons`, `loyalty_ledger`, `product_reviews`, `stock_alerts`, `addresses` |
 
 Order items preserve the product name, variant details, quantity, and price for the order. Database functions own order creation, stock reservation, status transitions, coupon usage, and reward changes.
 
@@ -352,6 +362,13 @@ PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
 - Reward points are earned when orders are delivered or collected.
 - Courier and tracking values are entered by staff; there is no courier API integration in this implementation.
 - Pickup orders use the same underlying status values and cannot receive courier tracking details.
+- A guest order has no account. It is reached through an unguessable link (`/orders/guest/[token]`) and is created by a server-only database function; guests cannot use coupons or points.
+- A return can be requested once per delivered order, inside the return period. Staff approve, reject, or mark it refunded. Marking it refunded records the decision only; the money is returned with the refund tool on the same page (see below).
+- A refund is made on a paid order from its admin page. “Refund through PayHere” returns the whole payment to the customer’s card using PayHere’s Refund API and needs `PAYHERE_APP_ID` and `PAYHERE_APP_SECRET`; a manual refund records money returned another way, for any amount still refundable. A refund also settles an approved return on the order.
+- Abandoned-bag reminders go only to signed-in customers (guests have no email on file), once per bag, after the number of hours set in Admin → Settings (0 switches them off). They need `RESEND_API_KEY`, `EMAIL_FROM` and `APP_URL`. The store sends due reminders in the background when its home page is visited; to make the timing independent of traffic, have a scheduler call `GET /api/cron/reminders` with the header `Authorization: Bearer <CRON_SECRET>`.
+- The newsletter list is collected and exported; the app does not send newsletters itself. Signup is single opt-in.
+- Low-stock emails are sent through Resend when `RESEND_API_KEY`, `EMAIL_FROM` and `ALERT_EMAIL_TO` are set: one email when a finish reaches its reorder level, and again only after it has been restocked and fallen back. Without those settings the dashboard and inventory page still flag low stock.
+- Back-in-stock requests are marked ready when stock returns. The app does not send the email itself; staff contact the customer from the waiting list.
 
 <a id="routes"></a>
 
@@ -359,11 +376,11 @@ PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
 
 | Area                | Routes                                                                                                         |
 | ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Shopping            | `/`, `/products`, `/products/[slug]`, `/cart`, `/checkout`                                                     |
+| Shopping            | `/`, `/products`, `/products/[slug]`, `/compare`, `/bundles`, `/cart`, `/checkout`                                         |
 | Authentication      | `/login`, `/register`, `/forgot-password`, `/auth/callback`                                                    |
 | Customer account    | `/account`, `/account/profile`, `/account/address`, `/account/security`, `/account/password`                   |
 | Customer engagement | `/account/wishlist`, `/account/rewards`                                                                        |
-| Orders              | `/orders`, `/orders/[id]`, `/account/orders`                                                                   |
+| Orders              | `/orders`, `/orders/[id]`, `/orders/guest/[token]`, `/track`, `/account/orders`                                |
 | Information         | `/help`, `/faq`, `/warranty`, `/refund-policy`, `/terms`                                                       |
 | Admin entry         | `/admin`, `/admin/login`                                                                                       |
 | Admin overview      | `/admin/dashboard`                                                                                             |
@@ -403,6 +420,23 @@ These route handlers serve the application. Authorization depends on the operati
 | `/api/staff`                 | `POST`, `PATCH`          | Staff creation and access changes                  |
 | `/api/staff/roles`           | `POST`, `DELETE`         | Staff role management                              |
 | `/api/uploads`               | `POST`                   | Multipart image uploads                            |
+| `/api/track`                 | `POST`                   | Order lookup by number and email or phone          |
+| `/api/reviews`               | `POST`, `DELETE`         | Verified-buyer reviews                             |
+| `/api/stock-alerts`          | `POST`, `DELETE`         | Back-in-stock requests                             |
+| `/api/addresses`             | `POST`, `DELETE`         | Customer address book                              |
+| `/api/returns`               | `POST`, `PATCH`          | Return requests and staff decisions                |
+| `/api/zones`                 | `GET`, `PUT`             | Delivery times by district                         |
+| `/api/products/suggest`      | `GET`                    | Search-as-you-type suggestions                     |
+| `/api/bundles`               | `GET`, `POST`, `DELETE`  | Room sets                                          |
+| `/api/reports`               | `GET`                    | Sales report download (CSV or Excel)               |
+| `/api/newsletter`            | `GET`, `POST`, `DELETE`  | Subscribe; staff list (CSV) and removal            |
+| `/api/cart`                  | `GET`, `PUT`             | A signed-in customer’s saved bag                   |
+| `/api/flash-sales`           | `POST`, `DELETE`         | Flash sales                                        |
+| `/api/cron/reminders`        | `GET`                    | Sends due bag reminders (needs `CRON_SECRET`)      |
+| `/api/products/export`       | `GET`                    | Every product as a CSV spreadsheet                 |
+| `/api/products/import`       | `POST`                   | Create and update products from spreadsheet rows   |
+| `/api/customers/points`      | `POST`                   | Manual reward point adjustment                     |
+| `/api/orders/[id]/refund`    | `POST`                   | PayHere or manual refund                           |
 
 Browser mutation requests must send an `Origin` matching the configured app origin and the appropriate session cookies. PayHere notifications instead use form encoding and signature verification. See [src/lib/validation.ts](src/lib/validation.ts) and the relevant handler under [src/app/api](src/app/api) for exact request bodies.
 
@@ -504,45 +538,6 @@ Before opening the store to customers:
 - Set the business WhatsApp number and review the customer-facing policy pages.
 
 The repository does not include a Dockerfile, hosting-specific deployment pipeline, or automated migration runner. Keep the database migration sequence as an explicit deployment step.
-
-<a id="customization"></a>
-
-## 🎨 Customization
-
-| Change                                              | Where to work                                                                                                  |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| README brand logo                                   | [public/images/forma-logo.png](public/images/forma-logo.png)                                                   |
-| Colors and theme tokens                             | [src/app/theme.css](src/app/theme.css)                                                                         |
-| Application styling                                 | [src/app/globals.css](src/app/globals.css), [src/app/reset.css](src/app/reset.css)                             |
-| Navigation and footer                               | [src/components/header.tsx](src/components/header.tsx), [src/components/footer.tsx](src/components/footer.tsx) |
-| Page shell and metadata                             | [src/app/layout.tsx](src/app/layout.tsx)                                                                       |
-| Catalog, prices, and images                         | Admin → Products / Categories / Inventory                                                                      |
-| Home page promotions                                | Admin → Promo slides                                                                                           |
-| Delivery, pickup, contact details, and reward rates | Admin → Settings                                                                                               |
-| Authentication email branding                       | [supabase/email-templates](supabase/email-templates) and the matching Supabase templates                       |
-
-The supplied Forma & Co. PNG is stored in the repository so the README logo renders without depending on a local Downloads path. Technology badges use external Shields.io images; the brand logo is local.
-
-<a id="troubleshooting"></a>
-
-## 🛠️ Troubleshooting
-
-| Symptom                                      | What to check                                                                                      |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Store database is not connected              | Supabase URL and a valid publishable/anon key in `.env.local`; restart the server                  |
-| Catalog is empty                             | Seed the database or create active categories, products, and variants in admin                     |
-| SQL files are missing from a clone           | The current `*.sql` ignore rule excludes them; obtain the migration/seed files from the maintainer |
-| Dashboard reports a database update          | Apply the named missing migration and its prerequisites in order                                   |
-| Account exists but admin access is denied    | Verify that account's `profiles.role` is `ADMIN`, or assign the appropriate staff role             |
-| Staff creation or access changes fail        | Check `SUPABASE_SECRET_KEY` and confirm the caller is a full administrator                         |
-| Request origin is not allowed                | Match scheme, hostname, and port to `APP_URL` / `NEXT_PUBLIC_APP_URL`                              |
-| Confirmation/reset link returns to login     | Check the Site URL, allowed callback URLs, email template, and token validity                      |
-| PayHere is unavailable                       | Check merchant ID, merchant secret, server-only Supabase key, and app URL                          |
-| Payment returned but order remains pending   | Check notification delivery and signature verification; browser return alone is insufficient       |
-| WhatsApp link is unavailable                 | Set a valid international business number and restart the server                                   |
-| Image upload is rejected                     | Use a nonempty JPG/PNG/WebP no larger than 5 MiB; check bucket setup and area permissions          |
-| Coupons, pickup, or rewards are unavailable  | Apply the migrations that introduce the relevant settings and tables                               |
-| Test/typecheck scripts fail on missing files | Restore the missing suites and `tests/tsconfig.json`; use `npx tsc --noEmit` for app-only checking |
 
 <a id="contributing"></a>
 
