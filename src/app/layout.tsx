@@ -6,6 +6,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { currentUser } from "@/lib/auth";
 import { isConfigured, whatsappNumber } from "@/lib/config";
+import { isStaff } from "@/lib/permissions";
 import { StoreProvider } from "@/components/store-provider";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { getCategories } from "@/services/catalog";
@@ -72,7 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   user
                     ? {
                         name: user.profile?.name || user.email || "",
-                        admin: user.profile?.role === "ADMIN",
+                        admin: isStaff(user.profile),
                       }
                     : null
                 }
