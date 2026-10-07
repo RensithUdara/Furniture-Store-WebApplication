@@ -1,27 +1,32 @@
 "use client";
 import Link from "next/link";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import { useRouter } from "next/navigation";
-import { BellRing, Scale, Star, Trash2, X } from "lucide-react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { BellRing, MessageSquareText, Scale, Star, Trash2, X } from "lucide-react";
 import { api } from "@/lib/client-api";
 import { useConfirm } from "@/components/dialogs";
-import { ProductCard } from "@/components/product-card";
 import { dateOnly, money } from "@/lib/format";
 import { totalStock } from "@/lib/catalog-filter";
 import type { Product, Review } from "@/types";
 
 /* ---------- Star ratings ---------- */
-export function Stars({ value, count, size = 15 }: { value: number; count?: number; size?: number }) {
+export function Stars({
+  value,
+  count,
+  size = 15,
+}: {
+  value: number;
+  count?: number;
+  size?: number;
+}) {
   return (
     <span className="stars" aria-label={`Rated ${value.toFixed(1)} out of 5`}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={size} className={value >= n - 0.25 ? "on" : value >= n - 0.75 ? "half" : ""} />
+        <Star
+          key={n}
+          size={size}
+          className={value >= n - 0.25 ? "on" : value >= n - 0.75 ? "half" : ""}
+        />
       ))}
       {count !== undefined && <small>({count})</small>}
     </span>
@@ -47,6 +52,7 @@ const write = (key: string, value: string[]) => {
 };
 export function CompareProvider({ children }: { children: ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);
+  const pathname = usePathname();
   useEffect(() => setIds(read("forma-compare").slice(0, MAX_COMPARE)), []);
   const save = (next: string[]) => {
     setIds(next);
@@ -62,10 +68,10 @@ export function CompareProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      {ids.length > 0 && (
+      {ids.length > 0 && pathname !== "/compare" && !pathname.startsWith("/admin") && (
         <div className="compare-bar" role="region" aria-label="Product comparison">
           <span>
-            <Scale size={18} /> {ids.length} of {MAX_COMPARE} selected to compare
+            <Scale size={18} /> {ids.length} of {MAX_COMPARE} to compare
           </span>
           <Link className="button button-small" href="/compare">
             Compare now
@@ -119,11 +125,21 @@ export function CompareTable({ products }: { products: Product[] }) {
           : money(p.price);
       },
     ],
-    ["Rating", (p) => (p.rating ? <Stars value={p.rating.avg} count={p.rating.count} /> : "No reviews yet")],
+    [
+      "Rating",
+      (p) => (p.rating ? <Stars value={p.rating.avg} count={p.rating.count} /> : "No reviews yet"),
+    ],
     ["Category", (p) => p.categories?.name],
     ["Material", (p) => p.material],
     ["Dimensions", (p) => p.dimensions],
-    ["Finishes", (p) => p.product_variants.filter((v) => v.is_active).map((v) => v.color).join(", ")],
+    [
+      "Finishes",
+      (p) =>
+        p.product_variants
+          .filter((v) => v.is_active)
+          .map((v) => v.color)
+          .join(", "),
+    ],
     ["Availability", (p) => (totalStock(p) > 0 ? `${totalStock(p)} in stock` : "Out of stock")],
     ["Brand", (p) => p.brand],
   ];
@@ -177,33 +193,6 @@ export function CompareTable({ products }: { products: Product[] }) {
   );
 }
 
-/* ---------- Recently viewed: remembered in this browser ---------- */
-export function RecentlyViewed({ current, products }: { current?: string; products: Product[] }) {
-  const [ids, setIds] = useState<string[]>([]);
-  useEffect(() => {
-    const seen = read("forma-recent");
-    setIds(seen.filter((id) => id !== current));
-    if (current) write("forma-recent", [current, ...seen.filter((id) => id !== current)].slice(0, 9));
-  }, [current]);
-  const list = ids.flatMap((id) => products.find((p) => p.id === id) || []).slice(0, 4);
-  if (!list.length) return null;
-  return (
-    <section className="section">
-      <div className="section-heading">
-        <div>
-          <span className="eyebrow">Pick up where you left off</span>
-          <h2>Recently viewed</h2>
-        </div>
-      </div>
-      <div className="product-grid">
-        {list.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /* ---------- Back in stock ---------- */
 export function NotifyMe({ variantId, signedIn }: { variantId: string; signedIn: boolean }) {
   const [state, setState] = useState<"idle" | "busy" | "done">("idle");
@@ -214,7 +203,10 @@ export function NotifyMe({ variantId, signedIn }: { variantId: string; signedIn:
     setError("");
     try {
       const email = String(new FormData(e.currentTarget).get("email") || "");
-      await api("/api/stock-alerts", "POST", { variant_id: variantId, ...(email ? { email } : {}) });
+      await api("/api/stock-alerts", "POST", {
+        variant_id: variantId,
+        ...(email ? { email } : {}),
+      });
       setState("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save your request.");
@@ -235,7 +227,13 @@ export function NotifyMe({ variantId, signedIn }: { variantId: string; signedIn:
       </strong>
       <div>
         {!signedIn && (
-          <input name="email" type="email" required maxLength={254} placeholder="Your email address" />
+          <input
+            name="email"
+            type="email"
+            required
+            maxLength={254}
+            placeholder="Your email address"
+          />
         )}
         <button className="button button-small" disabled={state === "busy"}>
           {state === "busy" ? "Saving…" : "Tell me when it is back"}
@@ -269,6 +267,15 @@ export function Reviews({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const average = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
+  // Shown to anyone who cannot review yet: only delivered orders unlock a review.
+  const howTo = userId ? (
+    "You can review this piece once an order containing it has been delivered."
+  ) : (
+    <>
+      Bought this piece? <Link href="/login">Sign in</Link> to review it once your order has been
+      delivered.
+    </>
+  );
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!rating) return setError("Choose a star rating.");
@@ -324,7 +331,7 @@ export function Reviews({
           </div>
         )}
       </div>
-      <div className="review-layout">
+      <div className={`review-layout${eligible ? "" : " is-single"}`}>
         <div className="review-list">
           {reviews.length ? (
             reviews.map((r) => (
@@ -344,9 +351,17 @@ export function Reviews({
                 </small>
               </article>
             ))
+          ) : eligible ? (
+            <p className="muted">No reviews yet. Be the first to share how it has been.</p>
           ) : (
-            <p className="muted">No reviews yet. Customers can review after their order is delivered.</p>
+            <div className="review-empty">
+              <MessageSquareText size={30} strokeWidth={1.5} />
+              <strong>No reviews yet</strong>
+              <p>{howTo}</p>
+            </div>
           )}
+          {/* With reviews listed, the same guidance sits quietly underneath them. */}
+          {!eligible && reviews.length > 0 && <p className="review-note">{howTo}</p>}
         </div>
         {eligible ? (
           <form className="form-card review-form" onSubmit={submit}>
@@ -386,13 +401,7 @@ export function Reviews({
               </button>
             </div>
           </form>
-        ) : (
-          <p className="info-message review-note">
-            {userId
-              ? "You can review this product once an order containing it has been delivered."
-              : "Bought this? Sign in to review it once your order has been delivered."}
-          </p>
-        )}
+        ) : null}
       </div>
     </section>
   );
