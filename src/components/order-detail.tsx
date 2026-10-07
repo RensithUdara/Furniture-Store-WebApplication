@@ -1,14 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, Check, Download, Truck, Mail, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Download, Truck, Mail, MessageCircle, Phone } from "lucide-react";
 import { money, dateTime, label, deliveryLabel } from "@/lib/format";
 import { whatsappMessage } from "@/lib/whatsapp";
 import { payhere } from "@/lib/config";
 import { Badge, Method } from "@/components/order-table";
 import { OrderActions } from "@/components/order-actions";
-import type { Order, PaymentEvent, StoreSettings } from "@/types";
-const steps = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] as const;
-const stepNames = ["Order placed", "Confirmed", "Processing", "Shipped", "Delivered"];
-const pickupNames = ["Order placed", "Confirmed", "Preparing", "Ready for pickup", "Collected"];
+import type { Order, OrderEvent, PaymentEvent, StoreSettings } from "@/types";
+import { OrderProgress, TrackingHistory } from "@/components/order-tracking";
 const payhereStatus: Record<number, string> = {
   2: "Success",
   0: "Pending",
@@ -23,6 +21,7 @@ export function OrderDetail({
   returned = false,
   payments = [],
   settings = null,
+  events = [],
 }: {
   order: Order;
   admin?: boolean;
@@ -30,8 +29,8 @@ export function OrderDetail({
   returned?: boolean;
   payments?: PaymentEvent[];
   settings?: StoreSettings | null;
+  events?: OrderEvent[];
 }) {
-  const current = steps.indexOf(o.order_status as (typeof steps)[number]);
   const local = o.customer_phone.replace(/^\+94|^0/, "");
   const pickup = o.fulfillment_method === "PICKUP";
   return (
@@ -83,18 +82,7 @@ export function OrderDetail({
           This order was cancelled on {dateTime(o.updated_at)}. Reserved stock has been released.
         </div>
       ) : (
-        <ol className="timeline" aria-label="Order progress">
-          {steps.map((s, i) => (
-            <li
-              key={s}
-              className={i < current ? "done" : i === current ? "done current" : ""}
-              aria-current={i === current ? "step" : undefined}
-            >
-              <span>{i <= current ? <Check size={14} /> : i + 1}</span>
-              {(pickup ? pickupNames : stepNames)[i]}
-            </li>
-          ))}
-        </ol>
+        <OrderProgress status={o.order_status} pickup={pickup} />
       )}
       {!pickup && ["SHIPPED", "DELIVERED"].includes(o.order_status) && (
         <div className="tracking-card">
@@ -158,6 +146,7 @@ export function OrderDetail({
             </table>
           </div>
           <OrderActions order={o} admin={admin} />
+          <TrackingHistory events={events} pickup={pickup} />
           {o.payment_method === "WHATSAPP" && (
             <details className="message-preview">
               <summary>
