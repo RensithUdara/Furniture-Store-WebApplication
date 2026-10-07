@@ -5,7 +5,9 @@ import type { Order, StoreSettings } from "@/types";
 // A4 in PDF points. All drawing below works down from the top of the page.
 const W = 595.28,
   H = 841.89,
-  M = 44;
+  M = 44,
+  // Height kept clear at the bottom of every page for the footer.
+  FOOT = 104;
 const navy = rgb(0.086, 0.129, 0.243),
   gold = rgb(0.91, 0.643, 0.11),
   ink = rgb(0.1, 0.13, 0.22),
@@ -200,7 +202,7 @@ export async function invoicePdf(order: Order, brand: InvoiceBrand) {
   order.order_items.forEach((item, index) => {
     const name = wrap(item.product_name, bold, 10, 250);
     const height = 14 + name.length * 13 + 12;
-    if (y + height > H - 90) {
+    if (y + height > H - FOOT - 12) {
       letterhead(true);
       tableHead();
     }
@@ -234,7 +236,7 @@ export async function invoicePdf(order: Order, brand: InvoiceBrand) {
         ] as [string, string][])
       : []),
   ];
-  if (y + totals.length * 18 + 120 > H - 70) letterhead(true);
+  if (y + totals.length * 18 + 110 > H - FOOT) letterhead(true);
   for (const [name, value] of totals) {
     text(name, 340, y, 10, regular, muted);
     text(value, columns.amount, y, 10, regular, ink, "right");
@@ -259,29 +261,34 @@ export async function invoicePdf(order: Order, brand: InvoiceBrand) {
   text("PAYMENT", M, y, 8.5, bold, muted);
   text(note, M, y + 14, 10, regular, ink);
 
-  // Footer on every page.
+  // Footer on every page: a thank-you line, how to reach the store, and where the policies are.
+  // Every line is wrapped to the page width, so a long web address can never run off the edge.
+  const width = W - 2 * M;
+  const reach = [
+    brand.settings?.pickup_address,
+    brand.settings?.store_phone && `Tel ${brand.settings.store_phone}`,
+    brand.whatsapp && `WhatsApp +${brand.whatsapp}`,
+  ]
+    .filter(Boolean)
+    .join("  |  ");
+  const footer = [
+    ...(reach ? wrap(reach, regular, 8.5, width) : []),
+    ...wrap(
+      `Warranty, refund policy and terms of use: ${host}/warranty  |  /refund-policy  |  /terms`,
+      regular,
+      8.5,
+      width,
+    ),
+    "This is a computer-generated bill and does not need a signature.",
+  ].slice(0, 5);
   const pages = pdf.getPages();
   pages.forEach((p, i) => {
     page = p;
-    rule(H - 62, line);
-    text("Thank you for choosing Forma & Co.", M, H - 52, 10, bold, navy);
-    text(
-      `Warranty, refunds and terms: ${host}/warranty  |  ${host}/refund-policy  |  ${host}/terms`,
-      M,
-      H - 37,
-      8,
-      regular,
-      muted,
-    );
-    text(
-      "This is a computer-generated bill and does not need a signature.",
-      M,
-      H - 26,
-      8,
-      regular,
-      muted,
-    );
-    text(`Page ${i + 1} of ${pages.length}`, W - M, H - 52, 8.5, regular, muted, "right");
+    const top = H - FOOT;
+    rect(M, top, width, 2, gold);
+    text("Thank you for choosing Forma & Co.", M, top + 14, 11, bold, navy);
+    text(`Page ${i + 1} of ${pages.length}`, W - M, top + 15, 8.5, regular, muted, "right");
+    footer.forEach((l, n) => text(l, M, top + 34 + n * 12, 8.5, regular, muted));
   });
   return pdf.save();
 }
