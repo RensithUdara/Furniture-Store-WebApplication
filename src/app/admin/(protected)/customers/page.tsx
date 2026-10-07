@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Mail } from "lucide-react";
 import { guardAdminPage } from "@/lib/auth";
 import { getCustomers } from "@/services/admin";
 import { CustomerList } from "@/components/admin/customer-list";
@@ -16,6 +18,9 @@ export default async function Customers() {
             Guest orders have no account and are not listed here.
           </p>
         </div>
+        <Link className="button button-outline" href="/admin/customers/newsletter">
+          <Mail size={16} /> Newsletter subscribers
+        </Link>
       </div>
       {customers === null ? (
         <div className="info-message">The customer list is not available yet.</div>

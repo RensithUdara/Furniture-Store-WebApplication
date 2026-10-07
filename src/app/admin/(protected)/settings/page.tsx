@@ -22,11 +22,7 @@ export default async function Settings() {
           {zones.length > 0 && <ZoneEditor zones={zones} />}
         </>
       ) : (
-        <div className="info-message">
-          The settings table does not exist yet. Run{" "}
-          <code>supabase/migrations/003_settings.sql</code> in the Supabase SQL editor, then reload
-          this page.
-        </div>
+        <div className="info-message">Store settings are not available yet.</div>
       )}
     </>
   );

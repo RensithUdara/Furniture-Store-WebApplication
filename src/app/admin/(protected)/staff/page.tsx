@@ -21,10 +21,7 @@ export default async function Staff() {
         </Link>
       </div>
       {staff === null || roles === null ? (
-        <div className="info-message">
-          Staff accounts need the latest database update. Run{" "}
-          <code>supabase/migrations/007_staff.sql</code> in the Supabase SQL editor.
-        </div>
+        <div className="info-message">Staff accounts are not available yet.</div>
       ) : (
         <StaffManager staff={staff} roles={roles} currentId={admin.id} />
       )}
