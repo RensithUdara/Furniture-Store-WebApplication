@@ -4,6 +4,8 @@ import { requireUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/server";
 import { apiError, checkOrigin, dbError, HttpError, readJson } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
+import { bundleDiscount } from "@/lib/bundles";
+import { getBundles } from "@/services/catalog";
 const body = z.object({
   code: z.string().trim().min(3).max(30),
   items: z
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
     const db = await supabase();
     const { data: variants, error } = await db
       .from("product_variants")
-      .select("id,price")
+      .select("id,price,product_id")
       .in(
         "id",
         items.map((i) => i.variant_id),
@@ -34,9 +36,17 @@ export async function POST(request: Request) {
         sum + Number(variants?.find((v) => v.id === i.variant_id)?.price || 0) * i.quantity,
       0,
     );
+    // A coupon applies to what is left after any room-set discount, as it does on the order.
+    const sets = bundleDiscount(
+      items.flatMap((i) => {
+        const v = variants?.find((v) => v.id === i.variant_id);
+        return v ? [{ product_id: v.product_id, quantity: i.quantity, price: Number(v.price) }] : [];
+      }),
+      (await getBundles()) || [],
+    ).amount;
     const { data, error: rpcError } = await db.rpc("preview_coupon", {
       p_code: code,
-      p_subtotal: subtotal,
+      p_subtotal: Math.max(0, subtotal - sets),
     });
     // PGRST202: the function does not exist until migration 006 has been run.
     if (rpcError?.code === "PGRST202") throw new HttpError(503, "Coupons are not available yet.");
