@@ -4,7 +4,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ChevronDown,
-  ExternalLink,
   Heart,
   Menu,
   MessageCircle,
@@ -49,24 +48,8 @@ export function Header({
   const parents = categories.filter((c) => !c.parent_id);
   const children = (id: string) => categories.filter((c) => c.parent_id === id);
   const initial = user?.name.trim().charAt(0).toUpperCase();
-  // The admin sign-in page has no store chrome; the rest of the admin area gets its own slim bar.
-  if (path === "/admin") return null;
-  if (path.startsWith("/admin"))
-    return (
-      <header className="navbar admin-bar">
-        <div className="container navbar-inner">
-          <Link className="wordmark" href="/admin/dashboard">
-            forma<span>& co.</span>
-            <em>Admin</em>
-          </Link>
-          <div className="nav-actions">
-            <Link href="/" className="nav-action">
-              <ExternalLink size={18} /> <span>View store</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-    );
+  // The admin panel and its sign-in page have their own frame.
+  if (path.startsWith("/admin")) return null;
   return (
     <>
       <div className="topbar">
@@ -210,7 +193,7 @@ export function Header({
             ))}
             {user?.admin && (
               <li>
-                <Link href="/admin/dashboard">Admin</Link>
+                <Link href="/admin">Admin</Link>
               </li>
             )}
           </ul>
@@ -255,7 +238,7 @@ export function Header({
               </Link>
             ))}
             {user?.admin && (
-              <Link className="drawer-parent" href="/admin/dashboard">
+              <Link className="drawer-parent" href="/admin">
                 Admin panel
               </Link>
             )}
