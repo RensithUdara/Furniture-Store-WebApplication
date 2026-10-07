@@ -2583,3 +2583,141 @@ td small.wrap {
     display: none;
   }
 }
+/* Order tracking: history list and the public Track order page */
+.history {
+  margin-top: 28px;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.history h2 {
+  margin: 0 0 18px;
+  font: 700 18px var(--sans);
+  letter-spacing: 0;
+}
+.history ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.history li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 14px;
+  padding-bottom: 20px;
+}
+.history li:last-child {
+  padding-bottom: 0;
+}
+/* The line joining one step to the next. */
+.history li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 34px;
+  bottom: 0;
+  left: 16px;
+  width: 2px;
+  background: var(--line);
+}
+.history-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--sand);
+  color: var(--muted);
+}
+.history li.latest .history-icon {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--sand-deep);
+}
+.history li.good .history-icon {
+  background: var(--green);
+  color: #fff;
+}
+.history li.warn .history-icon {
+  background: var(--red-bg);
+  color: var(--red);
+}
+.history strong {
+  display: block;
+  font-size: 15px;
+}
+.history p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+}
+.history time {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.track-page {
+  max-width: 980px;
+}
+.track-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  align-items: start;
+}
+.track-form .button {
+  margin-top: 28px;
+}
+.track-result {
+  margin-top: 30px;
+}
+.track-result .order-topline h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 34px);
+}
+.track-columns {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.track-columns .history {
+  margin-top: 0;
+}
+.track-items-title {
+  margin: 0 0 10px;
+  font: 700 18px var(--sans);
+  letter-spacing: 0;
+}
+.track-mine {
+  margin-top: 40px;
+}
+.track-hint {
+  margin-top: 26px;
+  font-size: 14.5px;
+}
+.track-hint a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+}
+@media (max-width: 760px) {
+  .track-form,
+  .track-columns {
+    grid-template-columns: 1fr;
+  }
+  .track-form .button {
+    margin-top: 0;
+    width: 100%;
+  }
+  .history {
+    padding: 18px;
+  }
+  .history li {
+    grid-template-columns: 34px 1fr;
+  }
+  .history time {
+    grid-column: 2;
+    margin-top: -8px;
+  }
+}
