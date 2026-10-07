@@ -36,6 +36,7 @@ export function ProductBrowser({
     [min, setMin] = useState(initial.min === undefined ? "" : String(initial.min)),
     [max, setMax] = useState(initial.max === undefined ? "" : String(initial.max)),
     [inStock, setInStock] = useState(Boolean(initial.inStock)),
+    [sale, setSale] = useState(Boolean(initial.sale)),
     [materials, setMaterials] = useState(initial.materials || []),
     [colours, setColours] = useState(initial.colours || []),
     [sizes, setSizes] = useState(initial.sizes || []),
@@ -53,13 +54,14 @@ export function ProductBrowser({
         min: min ? Number(min) : undefined,
         max: max ? Number(max) : undefined,
         inStock,
+        sale,
         materials,
         colours,
         sizes,
         rooms,
         sort,
       }).toString(),
-    [query, category, min, max, inStock, materials, colours, sizes, rooms, sort],
+    [query, category, min, max, inStock, sale, materials, colours, sizes, rooms, sort],
   );
   // The server already rendered the first page for the filters in the address bar.
   const loaded = useRef(search);
@@ -119,6 +121,7 @@ export function ProductBrowser({
     setMin("");
     setMax("");
     setInStock(false);
+    setSale(false);
     setMaterials([]);
     setColours([]);
     setSizes([]);
@@ -126,7 +129,7 @@ export function ProductBrowser({
     setSort("newest");
   }
   const active =
-    [query, category, min, max, inStock].filter(Boolean).length +
+    [query, category, min, max, inStock, sale].filter(Boolean).length +
     materials.length +
     colours.length +
     sizes.length +
@@ -245,6 +248,10 @@ export function ProductBrowser({
                 onChange={(e) => setInStock(e.target.checked)}
               />
               In stock only
+            </label>
+            <label className="filter-option">
+              <input type="checkbox" checked={sale} onChange={(e) => setSale(e.target.checked)} />
+              On sale
             </label>
           </fieldset>
           {checks("Room", facets.rooms, rooms, setRooms)}

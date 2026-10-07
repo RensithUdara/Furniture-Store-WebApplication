@@ -13,8 +13,17 @@ import { whatsappMessage } from "@/lib/whatsapp";
 import { payhere } from "@/lib/config";
 import { Badge, Method } from "@/components/order-table";
 import { OrderActions } from "@/components/order-actions";
-import type { Order, OrderEvent, PaymentEvent, ReturnRequest, StoreSettings } from "@/types";
+import type {
+  Order,
+  OrderEvent,
+  PaymentEvent,
+  Refund,
+  ReturnRequest,
+  StoreSettings,
+} from "@/types";
 import { ReturnPanel } from "@/components/account-extras";
+import { RefundPanel } from "@/components/admin/order-tools";
+import { Printer } from "lucide-react";
 import { OrderProgress, TrackingHistory } from "@/components/order-tracking";
 const payhereStatus: Record<number, string> = {
   2: "Success",
@@ -33,7 +42,12 @@ export function OrderDetail({
   events = [],
   guestToken,
   returnRequest = null,
+  refunds = [],
+  payhereRefunds = false,
 }: {
+  // Admin only: refunds recorded for this order, and whether PayHere refunds are set up.
+  refunds?: Refund[];
+  payhereRefunds?: boolean;
   order: Order;
   admin?: boolean;
   created?: boolean;
@@ -205,6 +219,21 @@ export function OrderDetail({
               canRequest={!guestToken && o.order_status === "DELIVERED" && windowDays > 0}
             />
           )}
+          {admin &&
+            o.refunded_amount !== undefined &&
+            (o.payment_status === "PAID" || refunds.length > 0) && (
+              <RefundPanel order={o} refunds={refunds} payhereReady={payhereRefunds} />
+            )}
+          {admin && (
+            <p className="order-tools">
+              <Link
+                className="button button-outline button-small"
+                href={`/admin/orders/${o.id}/print`}
+              >
+                <Printer size={15} /> Packing slip and delivery note
+              </Link>
+            </p>
+          )}
           {o.payment_method === "WHATSAPP" && (
             <details className="message-preview">
               <summary>
@@ -282,6 +311,12 @@ export function OrderDetail({
               <span>Total</span>
               <span>{money(o.total_amount)}</span>
             </div>
+            {Number(o.refunded_amount) > 0 && (
+              <div className="summary-line discount">
+                <span>Refunded</span>
+                <span>− {money(Number(o.refunded_amount))}</span>
+              </div>
+            )}
             <p className="summary-note">
               {o.payment_method === "PAYHERE"
                 ? `PayHere${payhere().mode === "sandbox" ? " Sandbox" : ""} · payment ${label(o.payment_status)}`

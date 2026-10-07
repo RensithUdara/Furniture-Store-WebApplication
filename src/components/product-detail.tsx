@@ -9,11 +9,13 @@ import {
   ArrowRight,
   ShieldCheck,
   MessageCircle,
+  Zap,
 } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { WishButton } from "@/components/wishlist-provider";
 import { NotifyMe, Stars } from "@/components/shop-extras";
 import { ProductGallery } from "@/components/product-gallery";
+import { Countdown } from "@/components/marketing";
 import { money, stockLabel, stockTone } from "@/lib/format";
 import type { Product, StoreSettings } from "@/types";
 export function ProductDetail({
@@ -77,6 +79,14 @@ export function ProductDetail({
             </>
           )}
         </p>
+        {p.flash && (
+          <div className="flash-note">
+            <span>
+              <Zap size={16} /> {p.flash.name}: {p.flash.percent}% off, ends in
+            </span>
+            <Countdown ends={p.flash.ends_at} />
+          </div>
+        )}
         <WishButton productId={p.id} name={p.name} label />
         <p className="detail-description">{p.description}</p>
         <fieldset className="variant-fieldset">

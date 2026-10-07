@@ -4,6 +4,7 @@ import { totalStock } from "@/lib/catalog-filter";
 import { CardActions } from "@/components/card-actions";
 import { WishButton } from "@/components/wishlist-provider";
 import { CompareToggle, Stars } from "@/components/shop-extras";
+import { Countdown } from "@/components/marketing";
 import type { Product } from "@/types";
 export function ProductCard({ product: p }: { product: Product }) {
   const variants = p.product_variants.filter((v) => v.is_active);
@@ -50,6 +51,7 @@ export function ProductCard({ product: p }: { product: Product }) {
         <p className={`product-stock ${stock === 0 ? "out" : stock <= 10 ? "low" : ""}`}>
           {stock === 0 ? "Out of stock" : stock <= 10 ? `Only ${stock} left` : "In stock"}
         </p>
+        {p.flash && stock > 0 && <Countdown ends={p.flash.ends_at} compact />}
         <CardActions product={p} />
         <CompareToggle productId={p.id} name={p.name} />
       </div>

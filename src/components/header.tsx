@@ -1,6 +1,7 @@
 "use client";
+import { SearchBox } from "@/components/search-box";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -15,7 +16,6 @@ import {
   Menu,
   MessageCircle,
   Phone,
-  Search,
   ShoppingCart,
   Truck,
   UserRound,
@@ -24,7 +24,6 @@ import {
 import { useCart } from "@/components/cart-provider";
 import { useStore } from "@/components/store-provider";
 import { useWishlist } from "@/components/wishlist-provider";
-import { navigate } from "@/components/navigation-progress";
 import { money, phoneNumbers } from "@/lib/format";
 import type { Category } from "@/types";
 const pages = [
@@ -50,7 +49,6 @@ export function Header({
   const count = items.reduce((a, i) => a + i.quantity, 0);
   const [open, setOpen] = useState(false);
   const path = usePathname();
-  const router = useRouter();
   useEffect(() => setOpen(false), [path]);
   // Categories and their sub-categories come from the database, so the menu follows the catalog.
   const parents = categories.filter((c) => !c.parent_id);
@@ -95,28 +93,7 @@ export function Header({
           <Link className="wordmark" href="/">
             forma<span>& co.</span>
           </Link>
-          <form
-            className="nav-search"
-            action="/products"
-            role="search"
-            onSubmit={(e) => {
-              // Navigate in the app (no full reload); the plain action still works without script.
-              e.preventDefault();
-              const q = String(new FormData(e.currentTarget).get("q") || "").trim();
-              navigate(router.push, q ? `/products?q=${encodeURIComponent(q)}` : "/products");
-            }}
-          >
-            <input
-              name="q"
-              type="search"
-              aria-label="Search the store"
-              placeholder="Enter products to search…"
-              maxLength={100}
-            />
-            <button aria-label="Search">
-              <Search size={20} />
-            </button>
-          </form>
+          <SearchBox />
           <div className="nav-actions">
             <Link href={user ? "/account" : "/login"} className="nav-action">
               {user ? <b className="avatar">{initial}</b> : <UserRound size={24} />}
