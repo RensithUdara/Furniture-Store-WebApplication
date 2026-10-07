@@ -1,3 +1,4 @@
+import { PRIVATE } from "@/lib/seo";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LogIn, UserPlus, UserRound } from "lucide-react";
@@ -8,7 +9,7 @@ import { getSettings } from "@/services/settings";
 import { getBundles } from "@/services/catalog";
 import { getAddresses, getZones } from "@/services/shopping";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Checkout" };
+export const metadata = { title: "Checkout", robots: PRIVATE };
 export default async function Checkout({
   searchParams,
 }: {

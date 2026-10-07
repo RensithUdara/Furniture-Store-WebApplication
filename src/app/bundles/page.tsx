@@ -1,12 +1,15 @@
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight, Sofa } from "lucide-react";
 import { getProducts, getShopBundles } from "@/services/catalog";
 import { BundleCard } from "@/components/bundle-card";
 export const dynamic = "force-dynamic";
-export const metadata = {
+export const metadata = pageMeta({
   title: "Room sets",
-  description: "Pieces chosen to go together, at a lower price when you order the whole set.",
-};
+  description:
+    "Furniture sets chosen to go together, at a lower price when you order the whole set. Delivered across Sri Lanka by Forma & Co.",
+  path: "/bundles",
+});
 export default async function Bundles() {
   const products = await getProducts();
   const bundles = await getShopBundles(products);

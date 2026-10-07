@@ -1,9 +1,15 @@
+import { jsonLd, pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { InfoPage } from "@/components/info-page";
 import { getSettings } from "@/services/settings";
 import { money } from "@/lib/format";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Frequently asked questions" };
+export const metadata = pageMeta({
+  title: "Frequently asked questions",
+  description:
+    "Answers about ordering furniture from Forma & Co.: payment by PayHere, cash on delivery or WhatsApp, delivery across Sri Lanka, store pickup, returns and warranty.",
+  path: "/faq",
+});
 export default async function Faq() {
   const s = await getSettings();
   const hours =
@@ -80,6 +86,29 @@ export default async function Faq() {
       title="Frequently asked questions"
       intro="Quick answers about ordering, paying, delivery, and pickup."
     >
+      {/* Lets search engines show the questions and answers directly in results. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: groups.flatMap((g) =>
+              g.items.flatMap(([q, a]) =>
+                typeof q === "string" && typeof a === "string"
+                  ? [
+                      {
+                        "@type": "Question",
+                        name: q,
+                        acceptedAnswer: { "@type": "Answer", text: a },
+                      },
+                    ]
+                  : [],
+              ),
+            ),
+          }),
+        }}
+      />
       {groups.map((g) => (
         <section key={g.title}>
           <h2>{g.title}</h2>

@@ -1,7 +1,8 @@
+import { PRIVATE } from "@/lib/seo";
 import { getProducts } from "@/services/catalog";
 import { CompareTable } from "@/components/shop-extras";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Compare products" };
+export const metadata = { title: "Compare products", robots: PRIVATE };
 export default async function Compare() {
   return (
     <div className="container page-space">
