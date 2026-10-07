@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer";
 import { currentUser } from "@/lib/auth";
 import { isConfigured, whatsappNumber } from "@/lib/config";
 import { isStaff } from "@/lib/permissions";
+import { ConfirmProvider } from "@/components/dialogs";
 import { StoreProvider } from "@/components/store-provider";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { getCategories } from "@/services/catalog";
@@ -64,26 +65,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <StoreProvider value={{ whatsapp: whatsappNumber(), settings }}>
-          <CartProvider>
-            <WishlistProvider initial={wishlist} signedIn={Boolean(user)}>
-              <Header
-                categories={categories}
-                // Only personalises navigation. Every protected page and API re-checks on the server.
-                user={
-                  user
-                    ? {
-                        name: user.profile?.name || user.email || "",
-                        admin: isStaff(user.profile),
-                      }
-                    : null
-                }
-              />
-              <main id="main">{children}</main>
-              <Footer categories={categories} />
-            </WishlistProvider>
-          </CartProvider>
-        </StoreProvider>
+        <ConfirmProvider>
+          <StoreProvider value={{ whatsapp: whatsappNumber(), settings }}>
+            <CartProvider>
+              <WishlistProvider initial={wishlist} signedIn={Boolean(user)}>
+                <Header
+                  categories={categories}
+                  // Only personalises navigation. Every protected page and API re-checks on the server.
+                  user={
+                    user
+                      ? {
+                          name: user.profile?.name || user.email || "",
+                          admin: isStaff(user.profile),
+                        }
+                      : null
+                  }
+                />
+                <main id="main">{children}</main>
+                <Footer categories={categories} />
+              </WishlistProvider>
+            </CartProvider>
+          </StoreProvider>
+        </ConfirmProvider>
       </body>
     </html>
   );
