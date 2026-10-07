@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ROOMS, SIZES } from "@/lib/catalog-filter";
+import { videoSource } from "@/lib/video";
 import { AREA_KEYS } from "@/lib/permissions";
 
 const text = (max = 200) => z.string().trim().min(1, "This field is required").max(max);
@@ -93,6 +95,17 @@ export const productSchema = z
       .min(1)
       .max(8),
     variants: z.array(variantSchema).min(1).max(30),
+    // Saved once migration 012 has been run; ignored by the database before that.
+    rooms: z.array(z.enum(ROOMS)).max(8).optional(),
+    size: z.union([z.enum(SIZES), z.literal("")]).optional(),
+    video_url: z
+      .string()
+      .trim()
+      .max(500)
+      .refine((v) => !v || videoSource(v) !== null, {
+        message: "Use a YouTube link, or a direct https link to an .mp4 or .webm file",
+      })
+      .optional(),
   })
   .refine(
     (v) => new Set(v.variants.map((i) => i.id)).size === v.variants.length,
@@ -138,6 +151,19 @@ export const addressSchema = z
     if (!/^\d{5}$/.test(v.postal_code)) issue("postal_code", "Enter a 5-digit postal code");
   });
 export const productStatusSchema = z.object({ is_active: z.boolean() });
+export const bundleSchema = z.object({
+  id: z.uuid().optional(),
+  name: text(100).min(2),
+  description: z.string().trim().max(500),
+  image_url: imageUrl,
+  discount_percent: z.number().min(1).max(90),
+  is_active: z.boolean(),
+  product_ids: z
+    .array(z.uuid())
+    .min(2, "Choose at least two products")
+    .max(8)
+    .refine((v) => new Set(v).size === v.length, "A product can appear only once"),
+});
 export const statusSchema = z.object({
   status: z.enum(["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]),
   // Sent by the admin when shipping a delivery, or when correcting the details afterwards.
@@ -161,6 +187,7 @@ export const settingsSchema = z
     point_value: z.number().min(0).max(1000).optional(),
     unpaid_expiry_minutes: z.number().int().min(0).max(10080).optional(),
     return_window_days: z.number().int().min(0).max(365).optional(),
+    cart_reminder_hours: z.number().int().min(0).max(168).optional(),
   })
   .refine(
     (v) =>
@@ -282,6 +309,8 @@ export const zonesSchema = z.object({
           min_days: z.number().int().min(0).max(60),
           max_days: z.number().int().min(0).max(90),
           is_active: z.boolean(),
+          // This district's own delivery fee. Null means the standard fee.
+          fee: z.number().min(0).max(100000000).nullable().optional(),
         })
         .refine(
           (z) => z.min_days <= z.max_days,
@@ -290,4 +319,70 @@ export const zonesSchema = z.object({
     )
     .min(1)
     .max(60),
+});
+export const pointsAdjustSchema = z.object({
+  user_id: z.uuid(),
+  points: z
+    .number()
+    .int()
+    .min(-1000000)
+    .max(1000000)
+    .refine((v) => v !== 0, "Enter a number of points to add or remove"),
+  note: z.string().trim().min(3, "Add a short note explaining the adjustment").max(200),
+});
+export const refundSchema = z.object({
+  method: z.enum(["PAYHERE", "MANUAL"]),
+  // Only for a manual refund; a PayHere refund is always the full payment.
+  amount: z.number().positive().max(100000000).optional(),
+  reference: z.string().trim().max(100).optional(),
+  note: z.string().trim().max(500).optional(),
+});
+export const inventorySchema = z
+  .object({
+    id: z.uuid(),
+    stock_quantity: z.number().int().min(0).max(100000).optional(),
+    previous: z.number().int().min(0).optional(),
+    reorder_level: z.number().int().min(0).max(100000).optional(),
+    note: z.string().trim().max(200).optional(),
+  })
+  .refine(
+    (v) => v.stock_quantity !== undefined || v.reorder_level !== undefined,
+    "Nothing to change",
+  );
+export const flashSaleSchema = z
+  .object({
+    id: z.uuid().optional(),
+    name: text(80).min(2),
+    discount_percent: z.number().min(1).max(90),
+    starts_at: z.iso.datetime(),
+    ends_at: z.iso.datetime(),
+    all_products: z.boolean(),
+    is_active: z.boolean(),
+    product_ids: z.array(z.uuid()).max(200),
+  })
+  .refine((v) => Date.parse(v.ends_at) > Date.parse(v.starts_at), {
+    message: "The sale must end after it starts",
+    path: ["ends_at"],
+  })
+  .refine((v) => v.all_products || v.product_ids.length > 0, {
+    message: "Choose the products on sale, or put the whole store on sale",
+    path: ["product_ids"],
+  });
+// What a signed-in customer's bag looks like when it is kept on the server.
+export const savedCartSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        variant_id: z.uuid(),
+        product_id: z.uuid(),
+        slug: z.string().max(200),
+        name: z.string().max(200),
+        details: z.string().max(200),
+        image: z.string().max(600),
+        price: z.number().positive().max(100000000),
+        quantity: z.number().int().min(1).max(20),
+        stock: z.number().int().min(0).max(100000),
+      }),
+    )
+    .max(30),
 });
