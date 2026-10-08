@@ -4311,3 +4311,327 @@ a.button[aria-disabled="true"] {
 .carousel-dots button.active {
   background-clip: content-box;
 }
+
+/* ---------- Shopping assistant ---------- */
+.assistant-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 88px;
+  z-index: 41;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 18px 0 14px;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14.5px;
+  box-shadow: 0 10px 24px -8px rgb(0 0 0 / 0.5);
+  transition: transform 0.2s;
+}
+.assistant-fab:hover {
+  transform: translateY(-2px);
+}
+.assistant-fab svg {
+  color: var(--gold);
+}
+.assistant {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  width: min(400px, calc(100vw - 32px));
+  height: min(620px, calc(100dvh - 40px));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 24px 60px -12px rgb(15 23 42 / 0.45);
+  overflow: hidden;
+}
+.assistant > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 10px 12px 14px;
+  background: var(--navy);
+  color: #fff;
+}
+.assistant-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.12);
+  color: var(--gold);
+}
+.assistant > header div {
+  flex: 1;
+  min-width: 0;
+}
+.assistant > header strong {
+  display: block;
+  font-size: 15px;
+}
+.assistant > header small {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+.assistant > header button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #fff;
+}
+.assistant > header button:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+.assistant > header .assistant-clear {
+  padding: 0 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.assistant-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 14px;
+  overflow-y: auto;
+  background: var(--paper);
+  scrollbar-width: thin;
+}
+.assistant-welcome p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.assistant-welcome div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.assistant-welcome button {
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.assistant-welcome button:hover {
+  border-color: var(--gold);
+  background: var(--accent-soft);
+}
+.assistant-turn {
+  display: grid;
+  gap: 8px;
+  max-width: 88%;
+}
+.assistant-turn p {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.assistant-turn.is-user {
+  align-self: flex-end;
+}
+.assistant-turn.is-user p {
+  border-bottom-right-radius: 4px;
+  background: var(--navy);
+  color: #fff;
+}
+.assistant-turn.is-assistant {
+  align-self: flex-start;
+  max-width: 100%;
+}
+.assistant-turn.is-assistant p {
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
+  background: var(--surface);
+}
+.assistant-turn.is-failed p {
+  border-color: #f3c4b4;
+  background: #fff4ef;
+  color: #9a3412;
+}
+.assistant-turn p a {
+  font-weight: 600;
+  color: #8a5a00;
+  text-decoration: underline;
+}
+.assistant-products {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.assistant-products a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px 7px 7px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.assistant-products a:hover {
+  border-color: var(--gold);
+}
+.assistant-products img {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--sand);
+}
+.assistant-products span {
+  flex: 1;
+  min-width: 0;
+}
+.assistant-products strong {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.assistant-products small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.assistant-products b {
+  flex: none;
+  font-size: 13px;
+  text-align: right;
+  white-space: nowrap;
+}
+.assistant-products b s {
+  display: block;
+  font-weight: 400;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.assistant-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.assistant-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sand-deep);
+  animation: assistant-dot 1s infinite ease-in-out;
+}
+.assistant-status i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.assistant-status i:nth-child(3) {
+  animation-delay: 0.3s;
+  margin-right: 6px;
+}
+@keyframes assistant-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.assistant > form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.assistant textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 110px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.4;
+  resize: none;
+  field-sizing: content;
+}
+.assistant textarea:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 0;
+}
+.assistant-send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+}
+.assistant-send:disabled {
+  opacity: 0.4;
+}
+@media (max-width: 640px) {
+  .assistant-fab {
+    right: 14px;
+    bottom: 74px;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    justify-content: center;
+  }
+  .assistant-fab span {
+    display: none;
+  }
+  .assistant {
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-status i {
+    animation: none;
+  }
+}
+@media print {
+  .assistant,
+  .assistant-fab {
+    display: none !important;
+  }
+}

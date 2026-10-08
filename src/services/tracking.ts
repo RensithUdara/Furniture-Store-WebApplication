@@ -42,7 +42,11 @@ export async function lookupOrder(orderNumber: string, contact: string) {
     estimated_from: (order.estimated_from || null) as string | null,
     estimated_to: (order.estimated_to || null) as string | null,
     total_amount: Number(order.total_amount),
-    items: order.order_items as { product_name: string; variant_details: string; quantity: number }[],
+    items: order.order_items as {
+      product_name: string;
+      variant_details: string;
+      quantity: number;
+    }[],
     events: (events || []) as { id: number; event: string; detail: string; created_at: string }[],
   };
 }

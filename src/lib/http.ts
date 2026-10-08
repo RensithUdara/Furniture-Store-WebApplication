@@ -29,9 +29,10 @@ export function apiError(error: unknown) {
     { status: 500 },
   );
 }
-export function checkOrigin(request: Request) {
+// `changes` is false for the few POST routes that only read (the shopping assistant).
+export function checkOrigin(request: Request, changes = true) {
   // A change is about to be made: the shared copy of the catalogue is no longer current.
-  bumpCatalog();
+  if (changes) bumpCatalog();
   const expected = new URL(appUrl() || request.url).origin;
   if (request.headers.get("origin") !== expected)
     throw new HttpError(403, "Request origin is not allowed.");

@@ -10,13 +10,10 @@ import { getZones } from "@/services/shopping";
 import { lookupOrder } from "@/services/tracking";
 import type { Product } from "@/types";
 
-// The store's shopping assistant: Claude, with tools that read the live catalogue, the store's
-// settings and (given an order number plus the contact used on it) an order's status.
-// It can only look things up. It cannot place, change or cancel orders, or see any account.
-
-// The model answering shoppers. Claude Opus 5.5 by default; ASSISTANT_MODEL overrides it.
 export const ASSISTANT_MODEL = process.env.ASSISTANT_MODEL || "claude-opus-5-5";
 export const assistantReady = () => Boolean(process.env.ANTHROPIC_API_KEY);
+
+const HAIKU = ASSISTANT_MODEL.includes("haiku");
 
 // What the browser sends back as conversation history: plain text turns only.
 export type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -89,13 +86,24 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
           description:
             "Words that should appear in the product's name, description, material or finish, e.g. 'oak dining table'. Leave out to browse by the other filters.",
         },
-        category: { type: "string", description: "A category slug, e.g. 'sofas'. A parent category includes its sub-categories." },
+        category: {
+          type: "string",
+          description:
+            "A category slug, e.g. 'sofas'. A parent category includes its sub-categories.",
+        },
         min_price: { type: "number", description: "Lowest price in rupees." },
-        max_price: { type: "number", description: "Highest price in rupees, e.g. the shopper's budget." },
+        max_price: {
+          type: "number",
+          description: "Highest price in rupees, e.g. the shopper's budget.",
+        },
         in_stock_only: { type: "boolean", description: "Only products that can be ordered now." },
         on_sale: { type: "boolean", description: "Only products with a reduced price." },
         room: { type: "string", enum: [...ROOMS], description: "The room the piece is for." },
-        colour: { type: "string", enum: COLOURS.map((c) => c.name), description: "Colour family of the finish." },
+        colour: {
+          type: "string",
+          enum: COLOURS.map((c) => c.name),
+          description: "Colour family of the finish.",
+        },
         sort: { type: "string", enum: ["newest", "price-low", "price-high", "name"] },
       },
     },
@@ -107,7 +115,12 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
     eager_input_streaming: true,
     input_schema: {
       type: "object",
-      properties: { slug: { type: "string", description: "The product's slug, as returned by search_products." } },
+      properties: {
+        slug: {
+          type: "string",
+          description: "The product's slug, as returned by search_products.",
+        },
+      },
       required: ["slug"],
     },
   },
@@ -127,7 +140,10 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
       type: "object",
       properties: {
         order_number: { type: "string", description: "The order number, e.g. FRM-AC7ECC94405B." },
-        contact: { type: "string", description: "The email address or phone number the shopper gave for that order." },
+        contact: {
+          type: "string",
+          description: "The email address or phone number the shopper gave for that order.",
+        },
       },
       required: ["order_number", "contact"],
     },
@@ -168,7 +184,8 @@ async function runTool(name: string, input: unknown, emit: Emit, ip: string): Pr
     const f = SearchInput.parse(input);
     emit({ type: "status", label: "Searching the collection…" });
     const [products, categories] = await Promise.all([getProducts(), getCategories()]);
-    const category = f.category && categories.some((c) => c.slug === f.category) ? f.category : undefined;
+    const category =
+      f.category && categories.some((c) => c.slug === f.category) ? f.category : undefined;
     const matches = filterProducts(products, {
       q: f.query,
       category,
@@ -186,7 +203,9 @@ async function runTool(name: string, input: unknown, emit: Emit, ip: string): Pr
     return JSON.stringify({
       total_matches: matches.length,
       shown_to_shopper: top.length,
-      ...(f.category && !category ? { note: `There is no category '${f.category}'; it was ignored.` } : {}),
+      ...(f.category && !category
+        ? { note: `There is no category '${f.category}'; it was ignored.` }
+        : {}),
       products: top.map(brief),
     });
   }
@@ -207,14 +226,18 @@ async function runTool(name: string, input: unknown, emit: Emit, ip: string): Pr
         finish: v.color,
         material: v.material,
         price_rs: Number(v.price),
-        ...(Number(v.compare_at_price || 0) > Number(v.price) ? { was_rs: Number(v.compare_at_price) } : {}),
+        ...(Number(v.compare_at_price || 0) > Number(v.price)
+          ? { was_rs: Number(v.compare_at_price) }
+          : {}),
         in_stock: v.stock_quantity > 0,
         ...(v.stock_quantity > 0 && v.stock_quantity <= 5 ? { only_left: v.stock_quantity } : {}),
       })),
       room_sets: sets.map((b) => ({
         name: b.name,
         saving_percent: b.discount_percent,
-        with: b.product_ids.flatMap((id) => products.find((x) => x.id === id && x.id !== p.id)?.name || []),
+        with: b.product_ids.flatMap(
+          (id) => products.find((x) => x.id === id && x.id !== p.id)?.name || [],
+        ),
       })),
     });
   }
@@ -238,10 +261,18 @@ async function runTool(name: string, input: unknown, emit: Emit, ip: string): Pr
         : "Confirmed at checkout.",
       store_pickup:
         s?.pickup_open_hour != null
-          ? { free: true, address: s.pickup_address, hours: `${s.pickup_open_hour}:00-${s.pickup_close_hour}:00` }
+          ? {
+              free: true,
+              address: s.pickup_address,
+              hours: `${s.pickup_open_hour}:00-${s.pickup_close_hour}:00`,
+            }
           : "Not offered at the moment.",
       phone: s?.store_phone || null,
-      payment_methods: ["Card or bank through PayHere", "Cash on delivery (or cash at pickup)", "Order over WhatsApp"],
+      payment_methods: [
+        "Card or bank through PayHere",
+        "Cash on delivery (or cash at pickup)",
+        "Order over WhatsApp",
+      ],
       guest_checkout: true,
       returns: s?.return_window_days
         ? `Requested from the order page within ${s.return_window_days} days of delivery; see /refund-policy.`
@@ -256,23 +287,35 @@ async function runTool(name: string, input: unknown, emit: Emit, ip: string): Pr
         refund_policy: "/refund-policy",
         terms: "/terms",
       },
-      categories: categories.map((c) => ({ name: c.name, slug: c.slug, url: `/category/${c.slug}` })),
+      categories: categories.map((c) => ({
+        name: c.name,
+        slug: c.slug,
+        url: `/category/${c.slug}`,
+      })),
     });
   }
   if (name === "track_order") {
     const { order_number, contact } = TrackInput.parse(input);
     emit({ type: "status", label: "Looking up your order…" });
-    if (!serviceKey()) return JSON.stringify({ error: "Order tracking is not available right now. Send the shopper to /track." });
+    if (!serviceKey())
+      return JSON.stringify({
+        error: "Order tracking is not available right now. Send the shopper to /track.",
+      });
     // The same limits as the tracking page: guessing the contact for a known order is the risk.
     try {
       await rateLimit("track-ip", ip, 12, 600);
       await rateLimit("track-order", order_number.toUpperCase(), 6, 600);
     } catch {
-      return JSON.stringify({ error: "Too many lookups for now. Ask the shopper to try again in a few minutes." });
+      return JSON.stringify({
+        error: "Too many lookups for now. Ask the shopper to try again in a few minutes.",
+      });
     }
     const order = await lookupOrder(order_number, contact);
     return JSON.stringify(
-      order || { found: false, note: "No order matches that number together with that contact detail." },
+      order || {
+        found: false,
+        note: "No order matches that number together with that contact detail.",
+      },
     );
   }
   return JSON.stringify({ error: `Unknown tool ${name}.` });
@@ -280,9 +323,17 @@ async function runTool(name: string, input: unknown, emit: Emit, ip: string): Pr
 
 // Answers the latest shopper message. Text is passed to `emit` as it is written; when the
 // model uses a tool, the tool runs here and the model continues with the result.
-export async function runAssistant(history: ChatTurn[], emit: Emit, ip: string, signal: AbortSignal) {
+export async function runAssistant(
+  history: ChatTurn[],
+  emit: Emit,
+  ip: string,
+  signal: AbortSignal,
+) {
   const client = new Anthropic();
-  const messages: Anthropic.Beta.BetaMessageParam[] = history.map((t) => ({ role: t.role, content: t.content }));
+  const messages: Anthropic.Beta.BetaMessageParam[] = history.map((t) => ({
+    role: t.role,
+    content: t.content,
+  }));
   // A shopper's question needs a search or two; this stops a runaway loop.
   for (let turn = 0; turn < 6; turn++) {
     const stream = client.beta.messages.stream(
@@ -290,24 +341,31 @@ export async function runAssistant(history: ChatTurn[], emit: Emit, ip: string, 
         model: ASSISTANT_MODEL,
         max_tokens: 8000,
         // Short, routine answers: low effort keeps the reply quick and inexpensive.
-        output_config: { effort: "low" },
+        ...(HAIKU ? {} : { output_config: { effort: "low" as const } }),
         system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
         tools: TOOLS,
         messages,
         // If a safety classifier declines a request, retry it on the fallback model
         // Anthropic recommends for that kind of refusal, inside the same call.
-        betas: ["server-side-fallback-2026-07-01"],
-        fallbacks: "default",
+        ...(HAIKU
+          ? {}
+          : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
       },
       { signal },
     );
     stream.on("text", (delta) => emit({ type: "text", delta }));
     const message = await stream.finalMessage();
     if (message.stop_reason === "refusal") {
-      emit({ type: "text", delta: "I can’t help with that, but I’m happy to help you find furniture or answer questions about the store." });
+      emit({
+        type: "text",
+        delta:
+          "I can’t help with that, but I’m happy to help you find furniture or answer questions about the store.",
+      });
       return;
     }
-    const uses = message.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use");
+    const uses = message.content.filter(
+      (b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use",
+    );
     // A tool input cut off at the token limit can look valid; never run it.
     if (message.stop_reason !== "tool_use" || !uses.length) return;
     // After a fallback, only what the fallback model wrote is echoed back; the first model's
@@ -316,13 +374,17 @@ export async function runAssistant(history: ChatTurn[], emit: Emit, ip: string, 
     messages.push({
       role: "assistant",
       content: message.content.filter(
-        (b, i) => i > cut || (b.type === "text" && cut >= 0) || cut < 0,
+        (b, i) => cut < 0 || i > cut || b.type === "text",
       ) as Anthropic.Beta.BetaContentBlockParam[],
     });
     const results: Anthropic.Beta.BetaToolResultBlockParam[] = [];
     for (const use of uses) {
       try {
-        results.push({ type: "tool_result", tool_use_id: use.id, content: await runTool(use.name, use.input, emit, ip) });
+        results.push({
+          type: "tool_result",
+          tool_use_id: use.id,
+          content: await runTool(use.name, use.input, emit, ip),
+        });
       } catch (e) {
         results.push({
           type: "tool_result",

@@ -55,7 +55,8 @@ export async function POST(request: Request) {
             emit({
               type: "error",
               message:
-                e instanceof Anthropic.RateLimitError || (e instanceof Anthropic.APIError && Number(e.status) >= 500)
+                e instanceof Anthropic.RateLimitError ||
+                (e instanceof Anthropic.APIError && Number(e.status) >= 500)
                   ? "The assistant is busy right now. Please try again in a moment."
                   : "Sorry, something went wrong. Please try again.",
             });

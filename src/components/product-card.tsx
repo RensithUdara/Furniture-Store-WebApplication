@@ -7,13 +7,7 @@ import { CompareToggle, Stars } from "@/components/shop-extras";
 import { Countdown } from "@/components/marketing";
 import { Photo } from "@/components/photo";
 import type { Product } from "@/types";
-export function ProductCard({
-  product: p,
-  eager = false,
-}: {
-  product: Product;
-  eager?: boolean;
-}) {
+export function ProductCard({ product: p, eager = false }: { product: Product; eager?: boolean }) {
   const variants = p.product_variants.filter((v) => v.is_active);
   const stock = totalStock(p);
   const prices = variants.map((v) => Number(v.price));
