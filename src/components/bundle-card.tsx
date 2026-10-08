@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowRight, Check, Plus, ShoppingBag } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { money } from "@/lib/format";
+import { Photo } from "@/components/photo";
 import type { Bundle, Product } from "@/types";
 // A room set: its pieces, what they cost apart, and what they cost together. The button adds
 // one of each piece to the bag; the saving then shows in the bag and at checkout, and the
@@ -55,7 +56,13 @@ export function BundleCard({ bundle: b, products }: { bundle: Bundle; products: 
           <li key={p.id}>
             {i > 0 && <Plus className="bundle-plus" size={18} aria-hidden />}
             <Link href={`/products/${p.slug}`}>
-              <img src={p.product_images[0]?.image_url || "/images/living.jpg"} alt="" />
+              <Photo
+                src={p.product_images[0]?.image_url || "/images/living.jpg"}
+                alt=""
+                width={300}
+                height={300}
+                sizes="150px"
+              />
               <strong>{p.name}</strong>
               <small>{v ? money(Number(v.price)) : "Out of stock"}</small>
             </Link>

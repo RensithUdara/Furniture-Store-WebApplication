@@ -4286,3 +4286,28 @@ td small.wrap {
   padding-top: 12px;
   padding-bottom: 6px;
 }
+
+/* A main heading that looks like a section heading (the home page's h1). */
+h1.h2 {
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.15;
+  margin-bottom: 0;
+}
+a.button[aria-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Carousel dots: the same small dot, inside a tap area large enough for a finger. */
+.carousel-dots button {
+  box-sizing: content-box;
+  padding: 8px 7px;
+  background-clip: content-box;
+}
+.carousel-dots {
+  gap: 0;
+  bottom: 10px;
+}
+.carousel-dots button.active {
+  background-clip: content-box;
+}

@@ -5,8 +5,16 @@ import { CardActions } from "@/components/card-actions";
 import { WishButton } from "@/components/wishlist-provider";
 import { CompareToggle, Stars } from "@/components/shop-extras";
 import { Countdown } from "@/components/marketing";
+import { Photo } from "@/components/photo";
 import type { Product } from "@/types";
-export function ProductCard({ product: p }: { product: Product }) {
+export function ProductCard({
+  product: p,
+  eager = false,
+}: {
+  product: Product;
+  // True for the first cards on a page, whose photos should load straight away.
+  eager?: boolean;
+}) {
   const variants = p.product_variants.filter((v) => v.is_active);
   const stock = totalStock(p);
   const prices = variants.map((v) => Number(v.price));
@@ -18,10 +26,13 @@ export function ProductCard({ product: p }: { product: Product }) {
   return (
     <article className={`product-card${stock === 0 ? " is-out" : ""}`}>
       <Link href={`/products/${p.slug}`} className="product-image">
-        <img
+        <Photo
           src={p.product_images[0]?.image_url || "/images/living.jpg"}
           alt={p.name}
-          loading="lazy"
+          width={600}
+          height={660}
+          sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 320px"
+          eager={eager}
         />
         {off > 0 ? (
           <span className="product-tag sale">{off}% off</span>

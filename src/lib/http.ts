@@ -1,3 +1,4 @@
+import { bumpCatalog } from "@/lib/catalog-cache";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { appUrl } from "@/lib/config";
@@ -29,6 +30,8 @@ export function apiError(error: unknown) {
   );
 }
 export function checkOrigin(request: Request) {
+  // A change is about to be made: the shared copy of the catalogue is no longer current.
+  bumpCatalog();
   const expected = new URL(appUrl() || request.url).origin;
   if (request.headers.get("origin") !== expected)
     throw new HttpError(403, "Request origin is not allowed.");

@@ -93,7 +93,7 @@ export function CompareToggle({ productId, name }: { productId: string; name: st
       type="button"
       className={`compare-toggle${on ? " on" : ""}`}
       aria-pressed={on}
-      aria-label={`${on ? "Remove" : "Add"} ${name} ${on ? "from" : "to"} comparison`}
+      aria-label={`${on ? "Comparing" : "Compare"} ${name}`}
       onClick={() => toggle(productId)}
     >
       <Scale size={14} /> {on ? "Comparing" : "Compare"}
