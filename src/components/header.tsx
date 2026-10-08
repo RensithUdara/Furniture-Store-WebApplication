@@ -95,7 +95,11 @@ export function Header({
           </Link>
           <SearchBox />
           <div className="nav-actions">
-            <Link href={user ? "/account" : "/login"} className="nav-action">
+            <Link
+              href={user ? "/account" : "/login"}
+              className="nav-action"
+              aria-label={user ? "Account" : "Sign in"}
+            >
               {user ? <b className="avatar">{initial}</b> : <UserRound size={24} />}
               <span>{user ? "Account" : "Sign in"}</span>
             </Link>
@@ -131,12 +135,12 @@ export function Header({
               <div className="mega mega-directory">
                 {parents.map((c) => (
                   <div key={c.id} className="mega-col">
-                    <Link className="mega-col-head" href={`/products?category=${c.slug}`}>
+                    <Link className="mega-col-head" href={`/category/${c.slug}`}>
                       {c.image_url && <img src={c.image_url} alt="" loading="lazy" />}
                       <span>{c.name}</span>
                     </Link>
                     {children(c.id).map((sub) => (
-                      <Link key={sub.id} href={`/products?category=${sub.slug}`}>
+                      <Link key={sub.id} href={`/category/${sub.slug}`}>
                         {sub.name}
                       </Link>
                     ))}
@@ -154,7 +158,7 @@ export function Header({
                 const subs = children(c.id);
                 return (
                   <li key={c.id} className={subs.length ? "has-menu" : ""}>
-                    <Link href={`/products?category=${c.slug}`}>
+                    <Link href={`/category/${c.slug}`}>
                       {c.name} {subs.length > 0 && <ChevronDown size={14} />}
                     </Link>
                     {subs.length > 0 && (
@@ -165,18 +169,18 @@ export function Header({
                           <ul>
                             {subs.map((sub) => (
                               <li key={sub.id}>
-                                <Link href={`/products?category=${sub.slug}`}>
+                                <Link href={`/category/${sub.slug}`}>
                                   <ChevronRight size={15} /> {sub.name}
                                 </Link>
                               </li>
                             ))}
                           </ul>
-                          <Link className="mega-all" href={`/products?category=${c.slug}`}>
+                          <Link className="mega-all" href={`/category/${c.slug}`}>
                             View all {c.name.toLowerCase()} <ArrowRight size={15} />
                           </Link>
                         </div>
                         {c.image_url && (
-                          <Link className="mega-feature" href={`/products?category=${c.slug}`}>
+                          <Link className="mega-feature" href={`/category/${c.slug}`}>
                             <img src={c.image_url} alt="" loading="lazy" />
                             <span>{c.name}</span>
                           </Link>
@@ -230,11 +234,11 @@ export function Header({
             </Link>
             {parents.map((c) => (
               <div key={c.id}>
-                <Link className="drawer-parent" href={`/products?category=${c.slug}`}>
+                <Link className="drawer-parent" href={`/category/${c.slug}`}>
                   {c.name}
                 </Link>
                 {children(c.id).map((s) => (
-                  <Link key={s.id} className="drawer-child" href={`/products?category=${s.slug}`}>
+                  <Link key={s.id} className="drawer-child" href={`/category/${s.slug}`}>
                     {s.name}
                   </Link>
                 ))}

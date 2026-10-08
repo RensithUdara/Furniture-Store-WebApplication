@@ -20,6 +20,14 @@ export async function supabase() {
     },
   });
 }
+// A client with no session: it sees exactly what a signed-out visitor may see. Used for the
+// shared copy of the public catalogue, which must never depend on who happened to ask first.
+export function publicClient() {
+  if (!isConfigured()) throw new Error("Connect Supabase to enable the store.");
+  return createClient(supabaseUrl(), supabaseKey(), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 // Bypasses row-level security. Used only by server code that has already verified the caller:
 // the signature-checked PayHere notification, and staff management after an admin check.
 export function serviceClient() {

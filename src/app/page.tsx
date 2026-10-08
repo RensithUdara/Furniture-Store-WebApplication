@@ -18,6 +18,7 @@ import { BundleCard } from "@/components/bundle-card";
 import { getSettings } from "@/services/settings";
 import { getSlides } from "@/services/slides";
 import { ProductCard } from "@/components/product-card";
+import { Photo } from "@/components/photo";
 import { Carousel } from "@/components/carousel";
 import { money } from "@/lib/format";
 import type { StoreSettings } from "@/types";
@@ -66,7 +67,6 @@ export default async function Home() {
   const arrivals = products.filter((p) => !featured.includes(p)).slice(0, 8);
   return (
     <>
-      <h1 className="sr-only">Forma & Co. furniture store</h1>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -155,17 +155,25 @@ export default async function Home() {
         <div className="section-heading">
           <div>
             <span className="eyebrow">Shop by category</span>
-            <h2>A place for every piece</h2>
+            {/* The page's main heading: what the store sells and where. */}
+            <h1 className="h2">Furniture for every room, delivered across Sri Lanka</h1>
           </div>
           <Link className="text-link" href="/products">
             Shop all furniture <ArrowRight size={17} />
           </Link>
         </div>
+        <h2 className="sr-only">Furniture categories</h2>
         <div className="category-grid">
           {parents.map((c) => (
-            <Link href={`/products?category=${c.slug}`} className="category-card" key={c.id}>
+            <Link href={`/category/${c.slug}`} className="category-card" key={c.id}>
               <div>
-                <img src={c.image_url || "/images/living.jpg"} alt="" loading="lazy" />
+                <Photo
+                  src={c.image_url || "/images/living.jpg"}
+                  alt=""
+                  width={600}
+                  height={450}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 320px"
+                />
               </div>
               <h3>{c.name}</h3>
               {c.description && <p>{c.description}</p>}

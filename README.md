@@ -76,10 +76,11 @@ The application uses **Sri Lankan rupees (LKR)** and displays dates in **Asia/Co
 - Back-in-stock requests on sold-out finishes, for signed-in customers and guests.
 - Guest checkout with a private order link, and order tracking without an account.
 - Estimated delivery dates by district, shown at checkout and stored on the order.
+- An AI shopping assistant (Claude) in a chat window: it searches the live catalogue, explains delivery, payment and returns from the store's settings, and checks an order's status given the order number and the contact used on it. It can only look things up. It is shown when `ANTHROPIC_API_KEY` is set.
 - Flash sales: a percentage off chosen products or the whole store between two moments, with a countdown. The database charges the sale price itself.
 - Newsletter signup in the footer, with one-click unsubscribe; staff download the list as CSV.
 - A signed-in customer’s bag is kept on the server, follows them between devices, and can trigger one reminder email.
-- Search-engine optimisation: `sitemap.xml`, `robots.txt`, a title, description and canonical address on every public page, a page per category, structured data (store, site search, product, breadcrumbs, FAQ, product lists), share previews, site icons and a web manifest. Private pages, searches and filtered views are kept out of the index. `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` add the ownership tags.
+- Search-engine optimisation: `sitemap.xml`, `robots.txt`, a title, description and canonical address on every public page, a page per category, structured data (store, site search, product, breadcrumbs, FAQ, product lists), share previews, site icons and a web manifest. Categories have clean addresses (`/category/sofas`; old `?category=` links redirect permanently), unknown products and categories answer with a real 404, and “Load more” is a followable link. Storefront images are resized and served in modern formats, and the public catalogue and settings are shared between requests for up to 30 seconds (dropped at once when anything changes through the app). Private pages, searches and filtered views are kept out of the index. `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` add the ownership tags.
 - Search suggestions as you type in the header, with product thumbnails and matching categories.
 - Catalogue filters for material, colour, size and room, with shareable filter links.
 - The catalogue is filtered on the server and sent 24 products at a time, with “Load more”.
@@ -376,7 +377,7 @@ PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
 
 | Area                | Routes                                                                                                         |
 | ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Shopping            | `/`, `/products`, `/products/[slug]`, `/compare`, `/bundles`, `/cart`, `/checkout`                                         |
+| Shopping            | `/`, `/products`, `/products/[slug]`, `/category/[slug]`, `/compare`, `/bundles`, `/cart`, `/checkout`                                         |
 | Authentication      | `/login`, `/register`, `/forgot-password`, `/auth/callback`                                                    |
 | Customer account    | `/account`, `/account/profile`, `/account/address`, `/account/security`, `/account/password`                   |
 | Customer engagement | `/account/wishlist`, `/account/rewards`                                                                        |
@@ -429,6 +430,7 @@ These route handlers serve the application. Authorization depends on the operati
 | `/api/products/suggest`      | `GET`                    | Search-as-you-type suggestions                     |
 | `/api/bundles`               | `GET`, `POST`, `DELETE`  | Room sets                                          |
 | `/api/reports`               | `GET`                    | Sales report download (CSV or Excel)               |
+| `/api/assistant`             | `POST`                   | Shopping assistant; answers stream as JSON lines   |
 | `/api/newsletter`            | `GET`, `POST`, `DELETE`  | Subscribe; staff list (CSV) and removal            |
 | `/api/cart`                  | `GET`, `PUT`             | A signed-in customer’s saved bag                   |
 | `/api/flash-sales`           | `POST`, `DELETE`         | Flash sales                                        |

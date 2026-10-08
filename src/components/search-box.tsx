@@ -56,7 +56,7 @@ export function SearchBox() {
     q.length < 2
       ? []
       : [
-          ...found.categories.map((c) => `/products?category=${c.slug}`),
+          ...found.categories.map((c) => `/category/${c.slug}`),
           ...found.products.map((p) => `/products/${p.slug}`),
           all,
         ];
@@ -128,7 +128,7 @@ export function SearchBox() {
       {show && (
         <div className="search-suggestions" id="search-suggestions" role="listbox">
           {found.categories.map((c) => (
-            <a key={c.slug} {...option(`/products?category=${c.slug}`, "suggestion-category")}>
+            <a key={c.slug} {...option(`/category/${c.slug}`, "suggestion-category")}>
               <LayoutGrid size={17} />
               <span>
                 {c.name} <small>Category</small>

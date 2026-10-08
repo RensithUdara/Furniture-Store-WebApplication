@@ -14,6 +14,7 @@ import { useCart } from "@/components/cart-provider";
 import { useConfirm } from "@/components/dialogs";
 import { money, deliveryFee, deliveryLabel } from "@/lib/format";
 import { bundleDiscount } from "@/lib/bundles";
+import { Photo } from "@/components/photo";
 import type { Bundle, StoreSettings } from "@/types";
 export function CartPage({
   settings,
@@ -61,7 +62,7 @@ export function CartPage({
           {items.map((i) => (
             <article className="cart-line" key={i.variant_id}>
               <Link href={`/products/${i.slug}`}>
-                <img src={i.image} alt={i.name} />
+                <Photo src={i.image} alt={i.name} width={240} height={240} sizes="120px" />
               </Link>
               <div>
                 <Link href={`/products/${i.slug}`}>

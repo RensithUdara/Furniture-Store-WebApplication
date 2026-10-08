@@ -58,7 +58,11 @@ export function WishButton({
       type="button"
       className={`wish-button${saved ? " saved" : ""}${label ? " with-label" : ""}`}
       aria-pressed={saved}
-      aria-label={`${saved ? "Remove" : "Save"} ${name} ${saved ? "from" : "to"} wishlist`}
+      aria-label={
+        label
+          ? `${saved ? "Saved to wishlist" : "Add to wishlist"}: ${name}`
+          : `${saved ? "Remove" : "Save"} ${name} ${saved ? "from" : "to"} wishlist`
+      }
       onClick={() => toggle(productId)}
     >
       <Heart size={18} fill={saved ? "currentColor" : "none"} />

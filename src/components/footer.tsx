@@ -103,7 +103,7 @@ export function Footer({ categories }: { categories: Category[] }) {
               .filter((c) => !c.parent_id)
               .slice(0, 6)
               .map((c) => (
-                <Link key={c.id} href={`/products?category=${c.slug}`}>
+                <Link key={c.id} href={`/category/${c.slug}`}>
                   {c.name}
                 </Link>
               ))}

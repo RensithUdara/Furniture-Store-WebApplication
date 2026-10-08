@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Expand, Play, X, ZoomIn, ZoomOut } from "lucide-react";
 import { videoSource } from "@/lib/video";
+import { Photo } from "@/components/photo";
 import type { ProductImage } from "@/types";
 type Media =
   | { kind: "image"; key: string; src: string }
@@ -79,9 +80,14 @@ export function ProductGallery({
             onMouseLeave={() => setHover(false)}
             onMouseMove={point}
           >
-            <img
+            <Photo
               src={current.src}
               alt={`${name}, image ${at + 1}`}
+              width={1000}
+              height={1000}
+              // Shown at up to half the page, and zoomed to twice that on hover.
+              sizes="(max-width: 900px) 100vw, 1000px"
+              eager={at === 0}
               style={hover ? { transform: "scale(2)", transformOrigin: origin } : undefined}
             />
             <span className="zoom-hint">
@@ -102,7 +108,13 @@ export function ProductGallery({
               aria-label={label(m, i)}
               aria-pressed={at === i}
             >
-              <img src={m.kind === "image" ? m.src : m.poster} alt="" />
+              <Photo
+                src={m.kind === "image" ? m.src : m.poster}
+                alt=""
+                width={160}
+                height={160}
+                sizes="80px"
+              />
               {m.kind !== "image" && (
                 <span className="thumb-play">
                   <Play size={18} />

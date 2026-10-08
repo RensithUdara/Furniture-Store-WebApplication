@@ -1,13 +1,29 @@
 import "server-only";
 import { isConfigured } from "@/lib/config";
-import { supabase } from "@/lib/supabase/server";
+import { publicClient } from "@/lib/supabase/server";
+import { catalogVersion } from "@/lib/catalog-cache";
 import type { StoreSettings } from "@/types";
 
 // Delivery pricing lives in the store_settings table (migration 003). Returns null until that
 // migration has been run; the UI then shows "calculated at checkout" instead of guessing a price.
-export async function getSettings(): Promise<StoreSettings | null> {
+// The settings are public and the same for everyone, so one copy is shared between requests
+// for up to 30 seconds and dropped as soon as anything is changed through the app.
+const cache = globalThis as unknown as {
+  __formaSettings?: { version: number; at: number; data: Promise<StoreSettings | null> };
+};
+export function getSettings(): Promise<StoreSettings | null> {
+  const hit = cache.__formaSettings;
+  if (hit && hit.version === catalogVersion() && Date.now() - hit.at < 30_000) return hit.data;
+  const entry = { version: catalogVersion(), at: Date.now(), data: load() };
+  cache.__formaSettings = entry;
+  entry.data.catch(() => {
+    if (cache.__formaSettings === entry) cache.__formaSettings = undefined;
+  });
+  return entry.data;
+}
+async function load(): Promise<StoreSettings | null> {
   if (!isConfigured()) return null;
-  const db = await supabase();
+  const db = publicClient();
   const { data, error } = await db.from("store_settings").select("*").maybeSingle();
   if (error) {
     if (error.code === "PGRST205" || error.code === "42P01") return null;

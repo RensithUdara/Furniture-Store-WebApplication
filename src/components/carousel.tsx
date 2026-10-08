@@ -1,4 +1,5 @@
 "use client";
+import { Photo } from "@/components/photo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
@@ -35,7 +36,8 @@ export function Carousel({ slides }: { slides: PromoSlide[] }) {
           aria-label={`${i + 1} of ${count}`}
           aria-hidden={i !== index}
         >
-          <img src={s.image_url} alt="" fetchPriority={i === 0 ? "high" : "low"} />
+          {/* The first slide is the first thing on the page; the others load when needed. */}
+          <Photo src={s.image_url} alt="" width={1920} height={900} sizes="100vw" eager={i === 0} />
           <div className="container slide-copy">
             {s.title && <h2>{s.title}</h2>}
             {s.subtitle && <p>{s.subtitle}</p>}

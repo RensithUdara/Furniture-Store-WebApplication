@@ -13,6 +13,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "@types/node": "^22",

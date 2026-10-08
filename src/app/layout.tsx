@@ -15,6 +15,8 @@ import { getSettings } from "@/services/settings";
 import { getWishlistIds } from "@/services/rewards";
 import { WishlistProvider } from "@/components/wishlist-provider";
 import { CompareProvider } from "@/components/shop-extras";
+import { Assistant } from "@/components/assistant";
+import { assistantReady } from "@/lib/assistant";
 import { SHARE_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/seo";
 import "./reset.css";
 import "./globals.css";
@@ -135,6 +137,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   />
                   <main id="main">{children}</main>
                   <Footer categories={categories} />
+                  {/* The assistant appears only when its API key is set on the server. */}
+                  {assistantReady() && <Assistant />}
                 </CompareProvider>
               </WishlistProvider>
             </CartProvider>

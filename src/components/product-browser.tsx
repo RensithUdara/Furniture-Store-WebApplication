@@ -63,10 +63,18 @@ export function ProductBrowser({
       }).toString(),
     [query, category, min, max, inStock, sale, materials, colours, sizes, rooms, sort],
   );
+  // The page's own address: the category is part of the path, the other filters follow it.
+  const rest = useMemo(() => {
+    const p = new URLSearchParams(search);
+    p.delete("category");
+    return p;
+  }, [search]);
+  const path = category ? `/category/${category}` : "/products";
+  const address = `${path}${rest.size ? `?${rest}` : ""}`;
   // The server already rendered the first page for the filters in the address bar.
   const loaded = useRef(search);
   useEffect(() => {
-    window.history.replaceState(null, "", search ? `?${search}` : window.location.pathname);
+    window.history.replaceState(null, "", address);
     if (loaded.current === search) return;
     const stop = new AbortController();
     // A short pause, so typing a word is one request instead of one per letter.
@@ -91,7 +99,7 @@ export function ProductBrowser({
       clearTimeout(timer);
       stop.abort();
     };
-  }, [search]);
+  }, [search, address]);
   async function loadMore() {
     setMore(true);
     setError("");
@@ -111,6 +119,9 @@ export function ProductBrowser({
       setMore(false);
     }
   }
+  const nextParams = new URLSearchParams(rest);
+  nextParams.set("page", String(Math.ceil(page.items.length / PAGE_SIZE) + 1));
+  const nextHref = `${path}?${nextParams}`;
   // Parents first, each followed by its sub-categories.
   const ordered = categories
     .filter((c) => !c.parent_id)
@@ -293,8 +304,8 @@ export function ProductBrowser({
           {page.items.length ? (
             <>
               <div className={`product-grid catalog-grid${busy ? " is-loading" : ""}`}>
-                {page.items.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                {page.items.map((p, i) => (
+                  <ProductCard key={p.id} product={p} eager={i < 4} />
                 ))}
               </div>
               <div className="load-more">
@@ -311,9 +322,19 @@ export function ProductBrowser({
                   <span style={{ width: `${(page.items.length / page.total) * 100}%` }} />
                 </div>
                 {page.items.length < page.total && (
-                  <button className="button button-outline" onClick={loadMore} disabled={more}>
+                  // A real link, so search engines can follow it to the rest of the list.
+                  // For shoppers it loads the next products in place instead.
+                  <a
+                    className="button button-outline"
+                    href={nextHref}
+                    aria-disabled={more}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!more) loadMore();
+                    }}
+                  >
                     {more ? "Loading…" : "Load more"}
-                  </button>
+                  </a>
                 )}
               </div>
             </>

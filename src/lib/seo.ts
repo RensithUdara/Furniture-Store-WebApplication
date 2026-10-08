@@ -16,11 +16,9 @@ export const SHARE_IMAGE = {
   url: "/images/og-image.jpg",
   width: 1200,
   height: 675,
-  alt: "Forma & Co. — modern furniture for every space",
+  alt: "Forma & Co. - modern furniture for every space",
 };
-// The title, description, canonical address and share preview for one page.
-// `path` is the page's own address; search engines are told that is the one to index, so the
-// same page reached with tracking or filter parameters is not counted as a separate page.
+
 export function pageMeta({
   title,
   description,
