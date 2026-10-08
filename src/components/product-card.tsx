@@ -12,7 +12,6 @@ export function ProductCard({
   eager = false,
 }: {
   product: Product;
-  // True for the first cards on a page, whose photos should load straight away.
   eager?: boolean;
 }) {
   const variants = p.product_variants.filter((v) => v.is_active);
