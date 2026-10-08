@@ -19,9 +19,16 @@ export async function POST(request: Request) {
       .split(/\s+/);
     const author = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0];
     const db = await supabase();
-    const { error } = await db
-      .from("product_reviews")
-      .upsert({ ...input, user_id: user.id, author }, { onConflict: "product_id,user_id" });
+    // Insert first; if this customer has already reviewed the product, change that review.
+    // Two plain statements, not one "insert or update": customers may update only a review's
+    // rating, title and text, and an "insert or update" would need more than that.
+    let { error } = await db.from("product_reviews").insert({ ...input, user_id: user.id, author });
+    if (error?.code === "23505")
+      ({ error } = await db
+        .from("product_reviews")
+        .update({ rating: input.rating, title: input.title, body: input.body })
+        .eq("product_id", input.product_id)
+        .eq("user_id", user.id));
     if (error?.code === "42501")
       throw new HttpError(403, "Only customers who have received this product can review it.");
     if (error) dbError(error);
