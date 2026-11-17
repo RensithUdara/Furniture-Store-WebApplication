@@ -6,3 +6,7 @@ playwright-report/
 test-results/
 *.sql
 .env*
+.env
+.env.*
+.env.local
+.env.production
